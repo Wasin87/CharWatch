@@ -347,7 +347,7 @@ export const RiverMap: React.FC<RiverMapProps> = ({ onSelectRegionForAnalyst }) 
           </div>
 
           {/* REAL GOOGLE MAPS CONTAINER */}
-          <div className="relative w-full h-[420px] xs:h-[500px] sm:h-[580px] lg:h-[620px] rounded-2xl sm:rounded-3xl overflow-hidden glass-panel border-2 border-cyan-500/40 shadow-[0_20px_60px_rgba(0,0,0,0.9)] bg-[#01040a]">
+          <div className="relative w-full h-[360px] xs:h-[440px] sm:h-[560px] lg:h-[620px] rounded-2xl sm:rounded-3xl overflow-hidden glass-panel border-2 border-cyan-500/40 shadow-[0_20px_60px_rgba(0,0,0,0.9)] bg-[#01040a]">
             
             <APIProvider apiKey={apiKey}>
               <Map

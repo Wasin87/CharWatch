@@ -869,7 +869,7 @@ export const EarthGlobe: React.FC<EarthGlobeProps> = ({ onSelectBangladesh, onSe
       <div
         ref={containerRef}
         style={{ touchAction: 'none' }}
-        className={`relative w-full h-[320px] xs:h-[380px] sm:h-[480px] md:h-[580px] ${
+        className={`relative w-full h-[260px] xs:h-[320px] sm:h-[440px] md:h-[540px] ${
           isDragging ? 'cursor-grabbing' : 'cursor-grab'
         } transition-transform duration-300 flex items-center justify-center overflow-hidden`}
         onPointerDown={handlePointerDown}

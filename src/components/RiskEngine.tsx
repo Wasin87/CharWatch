@@ -92,9 +92,9 @@ export const RiskEngine: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center mb-8">
         
         {/* Left Circular Radial Gauge (6 Cols) */}
-        <div className="lg:col-span-6 flex flex-col items-center justify-center p-8 glass-panel-cyan rounded-3xl border border-cyan-500/30 relative shadow-2xl">
+        <div className="lg:col-span-6 flex flex-col items-center justify-center p-4 sm:p-8 glass-panel-cyan rounded-3xl border border-cyan-500/30 relative shadow-2xl">
           
-          <div className="relative w-72 h-72 sm:w-80 sm:h-80 flex items-center justify-center">
+          <div className="relative w-56 h-56 xs:w-64 xs:h-64 sm:w-80 sm:h-80 flex items-center justify-center">
             
             {/* SVG Circular Radial Progress Tracks */}
             <svg className="w-full h-full -rotate-90" viewBox="0 0 200 200">

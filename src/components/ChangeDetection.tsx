@@ -167,7 +167,7 @@ export const ChangeDetection: React.FC = () => {
           </div>
 
           {/* SATELLITE MAP CANVAS CONTAINER */}
-          <div className="relative w-full h-[440px] xs:h-[500px] sm:h-[560px] rounded-2xl sm:rounded-3xl overflow-hidden glass-panel border-2 border-cyan-500/40 shadow-2xl bg-[#01040a]">
+          <div className="relative w-full h-[360px] xs:h-[440px] sm:h-[540px] rounded-2xl sm:rounded-3xl overflow-hidden glass-panel border-2 border-cyan-500/40 shadow-2xl bg-[#01040a]">
             
             {viewMode === 'MAP_SATELLITE' ? (
               <APIProvider apiKey={apiKey}>
