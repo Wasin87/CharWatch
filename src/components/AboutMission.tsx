@@ -3,11 +3,6 @@ import {
   Satellite,
   ShieldCheck,
   Award,
-  Code2,
-  Cpu,
-  Mail,
-  CheckCircle2,
-  Sparkles,
 } from 'lucide-react';
 
 export const AboutMission: React.FC = () => {
@@ -70,29 +65,6 @@ export const AboutMission: React.FC = () => {
         <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
           CharWatch introduces all-weather satellite radar intelligence, allowing disaster response teams and local communities to "see through the clouds" and prepare before erosion strikes.
         </p>
-      </div>
-
-      {/* 4. COMPACT, SIMPLE & PROFESSIONALLY UNIQUE DEVELOPER SIGNATURE */}
-      <div className="pt-2 sm:pt-4 flex justify-center">
-        <div className="inline-flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full glass-panel border border-cyan-500/30 text-xs font-mono shadow-[0_0_20px_rgba(6,182,212,0.12)] hover:border-cyan-400 transition-all text-slate-300">
-          
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-            <span className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider">DEVELOPER:</span>
-            <span className="text-white font-bold tracking-wide">Md Wasin Ahmed</span>
-          </div>
-
-          <span className="text-slate-600 hidden sm:inline">|</span>
-
-          <a
-            href="mailto:wasinahmed87@gmail.com"
-            className="inline-flex items-center gap-1.5 text-cyan-400 hover:text-cyan-200 transition-colors text-[11px]"
-            title="Contact Developer"
-          >
-            <Mail className="w-3.5 h-3.5" />
-            <span>wasinahmed87@gmail.com</span>
-          </a>
-        </div>
       </div>
 
     </section>
