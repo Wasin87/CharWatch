@@ -48,7 +48,7 @@ export interface SatelliteMission {
 }
 
 export interface CharItem {
-  id: string; // e.g. CW-DEMO-0241
+  id: string; // e.g. CW-CHAR-0241
   name: string;
   river: string;
   district: string;
@@ -99,6 +99,28 @@ export interface DataSourceSpec {
   resolution: string;
   lastUpdated: string;
   license: string;
-  status: 'VERIFIED SOURCE' | 'PROTOTYPE SIMULATED';
+  status: 'OPERATIONAL LIVE' | 'VERIFIED SOURCE' | 'OPEN ACCESS' | 'OGC STAC' | 'PROTOTYPE SIMULATED';
   link: string;
+  apiEndpoint?: string;
+  accessProtocol?: string;
+  granuleCount?: string;
+  citationDoi?: string;
+}
+
+export interface RealGranuleRecord {
+  id: string;
+  mission: string;
+  sensor: string;
+  acquisitionTime: string;
+  polarization: string;
+  orbitDirection: 'ASCENDING' | 'DESCENDING';
+  pathFrame: string;
+  resolutionM: string;
+  fileFormat: string;
+  fileSizeMb: number;
+  targetSector: string;
+  quicklookType: string;
+  downloadUrl: string;
+  apiQueryUrl: string;
+  stacCollection: string;
 }

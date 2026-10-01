@@ -342,60 +342,6 @@ export const SIMULATED_EARLY_WARNING_ACTIONS: EarlyWarningAction[] = [
   }
 ];
 
-export const SIMULATED_DATA_SOURCES: DataSourceSpec[] = [
-  {
-    name: 'NASA-ISRO NISAR L-band SAR',
-    organization: 'NASA Jet Propulsion Laboratory / ISRO',
-    type: 'Radar Backscatter & Interferometry',
-    coverage: 'Global / Bangladesh Swath (12-Day Orbit)',
-    resolution: '3m - 10m',
-    lastUpdated: '2026-09-28',
-    license: 'NASA Open Data Policy',
-    status: 'PROTOTYPE SIMULATED',
-    link: 'https://nisar.jpl.nasa.gov/'
-  },
-  {
-    name: 'Copernicus Sentinel-1 C-band SAR',
-    organization: 'European Space Agency (ESA) / Copernicus',
-    type: 'Synthetic Aperture Radar (IW Mode)',
-    coverage: 'Bangladesh River Basin (6-Day Orbit)',
-    resolution: '5m x 20m',
-    lastUpdated: '2026-09-29',
-    license: 'CC BY-SA 3.0 IGO',
-    status: 'PROTOTYPE SIMULATED',
-    link: 'https://sentinels.copernicus.eu/'
-  },
-  {
-    name: 'NASA Earthdata ASF DAAC',
-    organization: 'Alaska Satellite Facility / NASA Earth Science',
-    type: 'SAR Granule Ingestion & Calibration',
-    coverage: 'South Asia / Brahmaputra-Padma-Meghna',
-    resolution: 'Radiometrically Terrain Corrected (RTC)',
-    lastUpdated: '2026-09-29',
-    license: 'NASA Earthdata Terms',
-    status: 'PROTOTYPE SIMULATED',
-    link: 'https://asf.alaska.edu/'
-  },
-  {
-    name: 'Copernicus DEM (30m GLO-30)',
-    organization: 'European Space Agency',
-    type: 'Digital Elevation Model',
-    coverage: 'Bangladesh Topography & River Valleys',
-    resolution: '30m spatial / 1m vertical',
-    lastUpdated: '2026-01-15',
-    license: 'Open Access',
-    status: 'PROTOTYPE SIMULATED',
-    link: 'https://spacedata.copernicus.eu/'
-  },
-  {
-    name: 'BWDB Hydrological Gauge Telemetry',
-    organization: 'Bangladesh Water Development Board',
-    type: 'In-situ River Stage & Discharge Data',
-    coverage: 'Sirajganj, Hardinge Bridge, Chandpur, Bahadurabad',
-    resolution: 'Daily In-situ Gauge Readings',
-    lastUpdated: '2026-09-29',
-    license: 'Public Sector Information',
-    status: 'PROTOTYPE SIMULATED',
-    link: 'http://www.ffwc.gov.bd/'
-  }
-];
+import { REAL_DATA_SOURCES } from './realScientificDatasets';
+
+export const SIMULATED_DATA_SOURCES: DataSourceSpec[] = REAL_DATA_SOURCES;
