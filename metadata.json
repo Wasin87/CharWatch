@@ -1,0 +1,8 @@
+{
+  "name": "CHARWATCH: Satellite-Radar Early Warning & Char Dynamics",
+  "description": "Satellite-radar intelligence system monitoring Bangladesh riverbank erosion, char dynamics, and monsoon flood risk using NISAR L-band and Sentinel-1 C-band SAR data.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

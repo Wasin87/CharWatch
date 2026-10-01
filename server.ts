@@ -1,0 +1,85 @@
+import express from 'express';
+import { createServer as createViteServer } from 'vite';
+import { GoogleGenAI } from '@google/genai';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+
+app.use(express.json());
+app.use(express.static('public'));
+
+// API Route for CHARWATCH AI River Analyst
+app.post('/api/analyst/chat', async (req, res) => {
+  try {
+    const { message, history, activeRegion, activeData } = req.body;
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+      return res.status(500).json({ 
+        error: 'GEMINI_API_KEY is not configured in environment.' 
+      });
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
+
+    const systemInstruction = `You are CHARWATCH ANALYST, an expert AI Earth Observation & River Dynamics Specialist for the CharWatch project (NASA Space Apps Challenge prototype for Bangladesh river systems).
+
+Context & Guidelines:
+1. Current Active River Sector: ${activeRegion ? activeRegion.name : 'Jamuna River Basin - Sirajganj Sector'}
+2. Current Sector Telemetry: ${activeData ? JSON.stringify(activeData) : 'Coherence: 0.82, L-band Backscatter: -11.4 dB, C-band Backscatter: -14.2 dB, Soil Moisture: 42.8%, Bank Shift: 340m West, Prototype Risk: WARNING'}
+3. ALL DATA IN THIS PROTOTYPE IS SIMULATED FOR DEMONSTRATION PURPOSES.
+4. Always ground your explanations in radar physics:
+   - NISAR (L-Band, 24cm wavelength): Superior cloud/canopy penetration, sensitive to soil moisture & sub-surface dielectric properties.
+   - Sentinel-1 (C-Band, 5.6cm wavelength): Excellent for surface roughness, land-water boundary mapping, interferometric coherence decay tracking.
+   - Bank Migration: Caused by severe monsoonal shear stress on loose alluvial sands along Jamuna/Padma/Meghna.
+   - Chars: Dynamics of braided river sandbars (sandbar -> emerging -> vegetated -> settled char).
+5. Tone: Scientific, authoritative, human-centered, concise, and calm.
+6. Clearly state whenever referencing simulated prototype data.`;
+
+    // Construct prompt history or direct message
+    const formattedPrompt = `${systemInstruction}\n\nUser Question: ${message}`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: formattedPrompt }]
+        }
+      ]
+    });
+
+    const reply = response.text || 'Analysis model returned empty response.';
+    res.json({ reply });
+  } catch (error: any) {
+    console.error('Error in /api/analyst/chat:', error);
+    res.status(500).json({ 
+      error: error?.message || 'Failed to process AI analysis request.' 
+    });
+  }
+});
+
+// Vite Middleware for Dev / Static serving
+async function startServer() {
+  if (process.env.NODE_ENV !== 'production') {
+    const vite = await createViteServer({
+      server: { middlewareMode: true, port: PORT, host: '0.0.0.0' },
+      appType: 'spa',
+    });
+    app.use(vite.middlewares);
+  } else {
+    app.use(express.static('dist'));
+    app.get('*', (req, res) => {
+      res.sendFile('dist/index.html', { root: '.' });
+    });
+  }
+
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`[CHARWATCH] Server running on http://0.0.0.0:${PORT}`);
+  });
+}
+
+startServer();
