@@ -1,896 +1,1010 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Play, Pause, Satellite, ZoomIn, ZoomOut, RotateCcw, Move, Compass, Radio, Layers, Info } from 'lucide-react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
+import * as THREE from 'three';
+import { 
+  Play, 
+  Pause, 
+  Satellite, 
+  ZoomIn, 
+  ZoomOut, 
+  RotateCcw, 
+  Move, 
+  Globe, 
+  Sparkles, 
+  MapPin, 
+  ExternalLink, 
+  Layers, 
+  Radio, 
+  Zap,
+  ShieldCheck,
+  Compass
+} from 'lucide-react';
 import { SIMULATED_SATELLITES } from '../data/simulatedData';
 import { SatelliteMission } from '../types/charwatch';
 
 interface EarthGlobeProps {
   onSelectBangladesh?: () => void;
   onSelectSatellite?: (sat: SatelliteMission) => void;
+  onNavigateToObservatory?: () => void;
 }
 
-export const EarthGlobe: React.FC<EarthGlobeProps> = ({ onSelectBangladesh, onSelectSatellite }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+export interface RiverDeltaHotspot {
+  id: string;
+  name: string;
+  country: string;
+  riverSystem: string;
+  lat: number;
+  lng: number;
+  status: 'CRITICAL' | 'WARNING' | 'MONITORING';
+  retreatRateM: number;
+  keyFeature: string;
+  color: string;
+  accentHex: number;
+  description: string;
+}
 
+const GLOBAL_DELTAS: RiverDeltaHotspot[] = [
+  {
+    id: 'bangladesh',
+    name: 'Bengal Mega-Delta (Jamuna-Padma-Meghna)',
+    country: 'Bangladesh',
+    riverSystem: 'Ganges-Brahmaputra-Meghna Basin',
+    lat: 23.85,
+    lng: 90.35,
+    status: 'CRITICAL',
+    retreatRateM: 340,
+    keyFeature: 'World’s most dynamic braided river corridor; severe monsoonal bank scour and char accretion.',
+    color: '#06b6d4',
+    accentHex: 0x06b6d4,
+    description: 'Primary focal corridor of CHARWATCH. Receives Himalayan meltwater discharge, causing extreme seasonal sandbar turnover.',
+  },
+  {
+    id: 'amazon',
+    name: 'Amazon River Mega Delta',
+    country: 'Brazil',
+    riverSystem: 'Amazon Basin',
+    lat: 0.05,
+    lng: -50.50,
+    status: 'MONITORING',
+    retreatRateM: 120,
+    keyFeature: 'Massive Atlantic sediment plume discharging 209,000 m³/s into the equatorial ocean.',
+    color: '#10b981',
+    accentHex: 0x10b981,
+    description: 'World’s largest river discharge creating huge turbid freshwater fronts and tidal bore waves (Pororoca).',
+  },
+  {
+    id: 'mississippi',
+    name: 'Mississippi Birdfoot Delta',
+    country: 'United States',
+    riverSystem: 'Mississippi River',
+    lat: 29.15,
+    lng: -89.25,
+    status: 'CRITICAL',
+    retreatRateM: 95,
+    keyFeature: 'Rapid coastal wetland subsidence, barrier island retreat, and sediment diversion engineering.',
+    color: '#f43f5e',
+    accentHex: 0xf43f5e,
+    description: 'Classic birdfoot delta heavily altered by levees and sediment starvation into the Gulf of Mexico.',
+  },
+  {
+    id: 'nile',
+    name: 'Nile River Delta & Rosetta',
+    country: 'Egypt',
+    riverSystem: 'Nile River',
+    lat: 31.40,
+    lng: 30.80,
+    status: 'CRITICAL',
+    retreatRateM: 130,
+    keyFeature: 'Mediterranean coastal wave erosion due to Aswan High Dam sediment trapping.',
+    color: '#f59e0b',
+    accentHex: 0xf59e0b,
+    description: 'Arcuate delta supporting 40+ million people under severe threat from sea-level rise and coastal scarp retreat.',
+  },
+  {
+    id: 'mekong',
+    name: 'Mekong River Delta',
+    country: 'Vietnam / Cambodia',
+    riverSystem: 'Mekong (Cuu Long)',
+    lat: 10.05,
+    lng: 105.80,
+    status: 'CRITICAL',
+    retreatRateM: 180,
+    keyFeature: 'Upstream hydropower dam sediment starvation, groundwater subsidence, and saline intrusion.',
+    color: '#ef4444',
+    accentHex: 0xef4444,
+    description: 'Vast agricultural food basket facing accelerating coastal mangrove erosion and land subsidence.',
+  },
+  {
+    id: 'yellow_river',
+    name: 'Yellow River (Huang He) Delta',
+    country: 'China',
+    riverSystem: 'Yellow River (Huang He)',
+    lat: 37.75,
+    lng: 119.20,
+    status: 'WARNING',
+    retreatRateM: 220,
+    keyFeature: 'Historically highest sediment-load river on Earth with rapid delta lobe switching into Bohai Sea.',
+    color: '#eab308',
+    accentHex: 0xeab308,
+    description: 'Highly regulated fluvial sediment corridor actively shaped by human hydraulic engineering.',
+  },
+  {
+    id: 'danube',
+    name: 'Danube River Delta Biosphere',
+    country: 'Romania / Ukraine',
+    riverSystem: 'Danube River',
+    lat: 45.20,
+    lng: 29.60,
+    status: 'MONITORING',
+    retreatRateM: 75,
+    keyFeature: 'Europe’s best-preserved wetland delta flowing into the Black Sea.',
+    color: '#38bdf8',
+    accentHex: 0x38bdf8,
+    description: 'UNESCO Biosphere Reserve with extensive anastomosing channels and active reed marsh islands.',
+  },
+  {
+    id: 'congo',
+    name: 'Congo River Pool Malebo & Canyon',
+    country: 'DR Congo',
+    riverSystem: 'Congo River',
+    lat: -4.30,
+    lng: 15.30,
+    status: 'MONITORING',
+    retreatRateM: 90,
+    keyFeature: 'World’s deepest river (>220m) with deep submarine Atlantic canyon.',
+    color: '#2dd4bf',
+    accentHex: 0x2dd4bf,
+    description: 'Second largest discharge on Earth flowing through the equatorial rainforest with lake-like braided channels.',
+  },
+];
+
+// Helper to convert Lat/Lng to 3D Cartesian coordinates on sphere
+function latLngToVector3(lat: number, lng: number, radius: number): THREE.Vector3 {
+  const phi = (90 - lat) * (Math.PI / 180);
+  const theta = (lng + 180) * (Math.PI / 180);
+
+  const x = -(radius * Math.sin(phi) * Math.cos(theta));
+  const z = radius * Math.sin(phi) * Math.sin(theta);
+  const y = radius * Math.cos(phi);
+
+  return new THREE.Vector3(x, y, z);
+}
+
+// Generate high-resolution procedural Earth texture as high-fidelity fallback
+function createProceduralEarthTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 2048;
+  canvas.height = 1024;
+  const ctx = canvas.getContext('2d');
+
+  if (ctx) {
+    // Deep Ocean gradient
+    const oceanGrad = ctx.createLinearGradient(0, 0, 0, 1024);
+    oceanGrad.addColorStop(0, '#021838'); // Arctic
+    oceanGrad.addColorStop(0.2, '#043468');
+    oceanGrad.addColorStop(0.5, '#02244a'); // Equatorial deep blue
+    oceanGrad.addColorStop(0.8, '#043468');
+    oceanGrad.addColorStop(1, '#021838'); // Antarctic
+    ctx.fillStyle = oceanGrad;
+    ctx.fillRect(0, 0, 2048, 1024);
+
+    // Continents & Landmass silhouettes
+    ctx.fillStyle = '#1b3b2b'; // Lush green land
+    // Eurasia / Africa
+    ctx.beginPath();
+    ctx.ellipse(1250, 420, 480, 280, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Sahara / Middle East Desert
+    ctx.fillStyle = '#5c4b32';
+    ctx.beginPath();
+    ctx.ellipse(1150, 450, 200, 120, -0.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Americas
+    ctx.fillStyle = '#1c3d2c';
+    ctx.beginPath();
+    ctx.ellipse(450, 380, 260, 220, 0.4, 0, Math.PI * 2); // North America
+    ctx.ellipse(560, 680, 160, 220, -0.2, 0, Math.PI * 2); // South America (Amazon)
+    ctx.fill();
+
+    // Australia
+    ctx.fillStyle = '#4a3826';
+    ctx.beginPath();
+    ctx.ellipse(1680, 720, 140, 110, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Polar ice caps
+    ctx.fillStyle = '#e2f1fc';
+    ctx.fillRect(0, 0, 2048, 70); // North Pole
+    ctx.fillRect(0, 950, 2048, 74); // South Pole
+
+    // Bengal Delta Sediment Plume into Bay of Bengal
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
+    ctx.beginPath();
+    ctx.ellipse(1380, 460, 30, 45, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  return texture;
+}
+
+export const EarthGlobe: React.FC<EarthGlobeProps> = ({
+  onSelectBangladesh,
+  onSelectSatellite,
+  onNavigateToObservatory,
+}) => {
+  const mountRef = useRef<HTMLDivElement>(null);
+
+  // Interaction State
   const [isRotating, setIsRotating] = useState(true);
-  const [zoomLevel, setZoomLevel] = useState<number>(1.0); // 0.8 to 1.8
   const [showClouds, setShowClouds] = useState(true);
   const [showCityLights, setShowCityLights] = useState(true);
   const [showRadarBeams, setShowRadarBeams] = useState(true);
+  const [selectedHotspot, setSelectedHotspot] = useState<RiverDeltaHotspot | null>(GLOBAL_DELTAS[0]);
+  const [hoveredHotspot, setHoveredHotspot] = useState<RiverDeltaHotspot | null>(null);
   const [selectedSatInfo, setSelectedSatInfo] = useState<SatelliteMission | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const [screenHotspots, setScreenHotspots] = useState<{ id: string; x: number; y: number; visible: boolean }[]>([]);
 
-  // Rotation physics state
-  const rotationRef = useRef({
-    yaw: 28, // initial focus towards Bangladesh / South Asia
-    pitch: 16,
-    targetYaw: 28,
-    targetPitch: 16,
-    vx: 0,
-    vy: 0,
-    lastX: 0,
-    lastY: 0,
-    lastTime: 0,
-    isInteracting: false,
-    dragDistance: 0,
-    isAnimatingToTarget: false,
-  });
+  // Three.js References
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const earthMeshRef = useRef<THREE.Mesh | null>(null);
+  const cloudsMeshRef = useRef<THREE.Mesh | null>(null);
+  const atmosphereMeshRef = useRef<THREE.Mesh | null>(null);
+  const earthGroupRef = useRef<THREE.Group | null>(null);
+  const satellitesGroupRef = useRef<THREE.Group | null>(null);
+  const radarConesGroupRef = useRef<THREE.Group | null>(null);
 
-  const zoomRef = useRef(zoomLevel);
+  // Mouse & Touch Dragging State
+  const isDraggingRef = useRef(false);
+  const previousMousePositionRef = useRef({ x: 0, y: 0 });
+  const targetRotationRef = useRef({ x: 0.35, y: -1.55 }); // Centered toward Bangladesh
+  const currentRotationRef = useRef({ x: 0.35, y: -1.55 });
+  const zoomDistanceRef = useRef(2.5); // Camera distance
+  const targetZoomDistanceRef = useRef(2.5);
+
+  // Primary Three.js Setup & WebGL Render Loop
   useEffect(() => {
-    zoomRef.current = zoomLevel;
-  }, [zoomLevel]);
+    const container = mountRef.current;
+    if (!container) return;
 
-  // High-fidelity continents coordinates
-  const continents = [
-    // 1. South Asia & Bengal Basin (Primary Focal Point)
-    {
-      name: 'South Asia & Bengal Delta',
-      fill: '#1a3328', // Lush tropical vegetation
-      stroke: 'rgba(56, 189, 248, 0.75)',
-      strokeWidth: 1.6,
-      points: [
-        [35.0, 74.5], [34.5, 78.0], [31.5, 79.5], [29.0, 81.0], [27.5, 84.5], 
-        [27.0, 88.5], [26.8, 89.8], [26.0, 92.5], [27.5, 94.0], [28.0, 96.5],
-        [24.5, 93.8], [22.5, 92.2], [21.5, 92.0], [20.0, 92.8], [17.5, 94.5], 
-        [16.0, 95.5], [16.5, 97.5], [14.0, 98.2], [10.5, 98.5], [8.0, 99.8],
-        [1.5, 104.0], [4.5, 103.5], [7.0, 100.0], [12.5, 99.8], [13.5, 100.5],
-        [11.5, 103.0], [8.5, 105.0], [10.5, 107.5], [16.0, 108.5], [21.0, 108.0],
-        [21.8, 89.2], [22.4, 91.8], [20.5, 87.0], [18.0, 84.0], [15.5, 80.2],
-        [10.8, 79.8], [9.2, 79.0], [8.2, 77.5], [10.0, 76.0], [13.0, 74.8],
-        [16.0, 73.5], [19.0, 72.8], [21.0, 72.5], [21.0, 69.5], [23.5, 68.5],
-        [25.0, 67.0], [25.5, 62.0], [30.0, 66.5], [34.0, 71.5]
-      ]
-    },
-    // Sri Lanka Island
-    {
-      name: 'Sri Lanka',
-      fill: '#1c3d2e',
-      stroke: 'rgba(56, 189, 248, 0.6)',
-      strokeWidth: 1.2,
-      points: [
-        [9.8, 80.2], [9.0, 80.8], [7.5, 81.8], [6.0, 81.2], 
-        [6.0, 80.2], [7.0, 79.8], [8.5, 79.8]
-      ]
-    },
-    // 2. East Asia, Tibetan Plateau & China
-    {
-      name: 'East Asia & China',
-      fill: '#243b2f',
-      stroke: 'rgba(56, 189, 248, 0.45)',
-      strokeWidth: 1.2,
-      points: [
-        [22.0, 108.5], [25.0, 118.0], [30.0, 122.0], [32.0, 121.5], [37.5, 122.5],
-        [39.0, 118.0], [38.5, 126.0], [42.0, 130.5], [43.0, 134.0], [48.0, 140.0],
-        [54.0, 140.0], [60.0, 165.0], [68.0, 175.0], [72.0, 140.0], [74.0, 105.0],
-        [70.0, 75.0], [55.0, 80.0], [45.0, 82.0], [38.0, 75.0], [35.0, 78.0]
-      ]
-    },
-    // Japan
-    {
-      name: 'Japan',
-      fill: '#1f382b',
-      stroke: 'rgba(56, 189, 248, 0.5)',
-      strokeWidth: 1.2,
-      points: [
-        [45.5, 142.0], [43.0, 145.5], [38.5, 141.5], [35.0, 140.0], 
-        [33.5, 135.5], [31.5, 130.5], [34.0, 132.0], [36.5, 136.5], 
-        [40.5, 140.0], [43.5, 141.0]
-      ]
-    },
-    // 3. Middle East & Arabian Peninsula
-    {
-      name: 'Arabia & Middle East',
-      fill: '#383023',
-      stroke: 'rgba(217, 119, 6, 0.4)',
-      strokeWidth: 1.2,
-      points: [
-        [30.0, 32.5], [28.0, 34.5], [22.0, 38.5], [15.5, 42.0], [12.8, 45.0],
-        [14.5, 53.5], [17.0, 55.0], [22.5, 59.5], [26.0, 56.5], [27.0, 50.5],
-        [30.0, 48.0], [31.0, 47.0], [35.5, 36.0], [33.0, 35.0], [31.5, 34.0]
-      ]
-    },
-    // 4. Africa
-    {
-      name: 'Africa',
-      fill: '#2b2a22',
-      stroke: 'rgba(217, 119, 6, 0.35)',
-      strokeWidth: 1.2,
-      points: [
-        [37.0, 10.0], [32.0, 32.0], [27.5, 34.0], [22.0, 37.0], [12.0, 43.5],
-        [11.5, 51.0], [2.0, 45.0], [-5.0, 39.5], [-11.5, 40.5], [-17.0, 39.0],
-        [-26.0, 33.0], [-34.5, 20.0], [-34.0, 18.5], [-22.0, 14.5], [-12.0, 13.5],
-        [-5.0, 12.0], [4.5, 9.0], [5.0, 1.0], [4.5, -7.5], [11.0, -15.0],
-        [15.0, -17.0], [21.0, -17.0], [32.0, -9.0], [35.5, -6.0], [36.0, 1.0]
-      ]
-    },
-    // Madagascar
-    {
-      name: 'Madagascar',
-      fill: '#1e3325',
-      stroke: 'rgba(56, 189, 248, 0.4)',
-      strokeWidth: 1.0,
-      points: [
-        [-12.0, 49.5], [-16.0, 50.0], [-25.0, 47.0], [-25.5, 45.0], 
-        [-20.0, 44.0], [-13.5, 48.0]
-      ]
-    },
-    // 5. Europe & Scandinavia
-    {
-      name: 'Europe',
-      fill: '#1e332e',
-      stroke: 'rgba(56, 189, 248, 0.4)',
-      strokeWidth: 1.2,
-      points: [
-        [36.0, -5.5], [43.5, -9.0], [48.5, -4.5], [51.0, 2.0], [54.0, 8.5],
-        [57.0, 8.5], [55.0, 13.0], [60.0, 18.0], [70.0, 28.0], [65.0, 40.0],
-        [55.0, 38.0], [46.0, 30.0], [41.0, 29.0], [37.0, 15.0], [41.0, 1.0]
-      ]
-    },
-    // 6. Australia & Maritime Continent
-    {
-      name: 'Australia',
-      fill: '#382a1d',
-      stroke: 'rgba(217, 119, 6, 0.45)',
-      strokeWidth: 1.2,
-      points: [
-        [-12.0, 131.0], [-12.5, 136.0], [-15.0, 142.0], [-11.0, 142.5], 
-        [-19.0, 147.0], [-24.0, 152.0], [-32.0, 153.0], [-37.5, 150.0],
-        [-38.5, 145.0], [-35.0, 138.0], [-32.0, 132.0], [-34.5, 122.0],
-        [-34.0, 115.0], [-26.0, 113.0], [-20.0, 117.0], [-15.0, 124.0]
-      ]
-    },
-    // Indonesia Archipelago
-    {
-      name: 'Indonesia Archipelago',
-      fill: '#163527',
-      stroke: 'rgba(56, 189, 248, 0.4)',
-      strokeWidth: 1.0,
-      points: [
-        [5.5, 95.5], [3.0, 98.5], [-5.0, 105.0], [-6.0, 106.5], 
-        [-7.5, 110.0], [-8.5, 115.0], [-8.5, 122.0], [-6.5, 108.0],
-        [-3.0, 104.0], [1.0, 100.5]
-      ]
-    },
-    // 7. North America
-    {
-      name: 'North America',
-      fill: '#22382c',
-      stroke: 'rgba(56, 189, 248, 0.35)',
-      strokeWidth: 1.2,
-      points: [
-        [70.0, -160.0], [60.0, -140.0], [48.0, -125.0], [32.0, -117.0], [20.0, -105.0],
-        [15.0, -92.0], [22.0, -97.0], [29.0, -90.0], [25.0, -80.5], [30.0, -81.0],
-        [40.0, -74.0], [45.0, -65.0], [60.0, -64.0], [70.0, -85.0], [72.0, -120.0]
-      ]
-    },
-    // 8. South America
-    {
-      name: 'South America',
-      fill: '#1c3829',
-      stroke: 'rgba(56, 189, 248, 0.35)',
-      strokeWidth: 1.2,
-      points: [
-        [10.0, -75.0], [-2.0, -80.0], [-18.0, -70.0], [-40.0, -72.0], [-55.0, -68.0],
-        [-45.0, -60.0], [-23.0, -43.0], [-5.0, -35.0], [5.0, -52.0], [8.0, -60.0]
-      ]
-    }
-  ];
+    const width = container.clientWidth;
+    const height = container.clientHeight;
 
-  // Real world city lights
-  const cityLights = [
-    { lat: 23.81, lng: 90.41, intensity: 1.0, name: 'Dhaka' },
-    { lat: 22.35, lng: 91.83, intensity: 0.85, name: 'Chittagong' },
-    { lat: 24.37, lng: 88.60, intensity: 0.75, name: 'Rajshahi' },
-    { lat: 22.84, lng: 89.54, intensity: 0.7, name: 'Khulna' },
-    { lat: 22.57, lng: 88.36, intensity: 0.95, name: 'Kolkata' },
-    { lat: 28.61, lng: 77.20, intensity: 1.0, name: 'Delhi' },
-    { lat: 19.07, lng: 72.87, intensity: 1.0, name: 'Mumbai' },
-    { lat: 13.08, lng: 80.27, intensity: 0.9, name: 'Chennai' },
-    { lat: 12.97, lng: 77.59, intensity: 0.9, name: 'Bengaluru' },
-    { lat: 13.75, lng: 100.50, intensity: 0.95, name: 'Bangkok' },
-    { lat: 1.35, lng: 103.81, intensity: 1.0, name: 'Singapore' },
-    { lat: 31.23, lng: 121.47, intensity: 1.0, name: 'Shanghai' },
-    { lat: 35.67, lng: 139.65, intensity: 1.0, name: 'Tokyo' },
-    { lat: 25.20, lng: 55.27, intensity: 1.0, name: 'Dubai' },
-    { lat: 51.50, lng: -0.12, intensity: 0.95, name: 'London' },
-    { lat: 40.71, lng: -74.00, intensity: 1.0, name: 'New York' },
-  ];
+    // 1. Scene
+    const scene = new THREE.Scene();
+    sceneRef.current = scene;
 
-  // 3D Spherical projection formula with uniform spherical geometry
-  const project3D = (
-    latDeg: number,
-    lngDeg: number,
-    yawDeg: number,
-    pitchDeg: number,
-    radius: number,
-    cx: number,
-    cy: number
-  ) => {
-    const latRad = (latDeg * Math.PI) / 180;
-    const lngRad = ((lngDeg + yawDeg) * Math.PI) / 180;
-    const pitchRad = (pitchDeg * Math.PI) / 180;
+    // 2. Camera
+    const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
+    camera.position.set(0, 0, zoomDistanceRef.current);
+    cameraRef.current = camera;
 
-    const x0 = Math.cos(latRad) * Math.sin(lngRad);
-    const y0 = Math.sin(latRad);
-    const z0 = Math.cos(latRad) * Math.cos(lngRad);
+    // 3. WebGL Renderer with High Precision & Antialiasing
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      powerPreference: 'high-performance',
+    });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    container.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
 
-    const x1 = x0;
-    const y1 = y0 * Math.cos(pitchRad) - z0 * Math.sin(pitchRad);
-    const z1 = y0 * Math.sin(pitchRad) + z0 * Math.cos(pitchRad);
+    // 4. Galaxy Background Starfield (Refined Micro-Stars & Astronomical Spectrums)
+    const starsCount = 3500;
+    const starsGeometry = new THREE.BufferGeometry();
+    const starPositions = new Float32Array(starsCount * 3);
+    const starColors = new Float32Array(starsCount * 3);
 
-    return {
-      x: cx + radius * x1,
-      y: cy - radius * y1,
-      z: z1,
-      visible: z1 > -0.05,
-    };
-  };
+    for (let i = 0; i < starsCount; i++) {
+      const radius = 18 + Math.random() * 45;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(Math.random() * 2 - 1);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
-    if (!canvas || !container) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+      starPositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+      starPositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+      starPositions[i * 3 + 2] = radius * Math.cos(phi);
 
-    let animId: number;
-    let cloudAngle = 0;
-    let pulseRing = 0;
-    let radarWaveOffset = 0;
-
-    let width = 0;
-    let height = 0;
-    let dpr = 1;
-
-    // Background cosmic galaxy stars
-    const galaxyStars: { x: number; y: number; size: number; alpha: number; color: string }[] = [];
-
-    const handleResize = () => {
-      if (!canvas || !container) return;
-      const rect = container.getBoundingClientRect();
-      width = Math.round(rect.width);
-      height = Math.round(rect.height);
-      if (width <= 0 || height <= 0) return;
-
-      dpr = Math.min(2, window.devicePixelRatio || 1);
-
-      // Lock internal canvas pixel buffer EXACTLY to displayed CSS dimensions
-      canvas.width = Math.round(width * dpr);
-      canvas.height = Math.round(height * dpr);
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.scale(dpr, dpr);
-
-      // Generate background cosmic dust and galaxy stars across the wide banner
-      galaxyStars.length = 0;
-      const count = Math.min(260, Math.floor((width * height) / 3600));
-      for (let s = 0; s < count; s++) {
-        galaxyStars.push({
-          x: Math.random() * width,
-          y: Math.random() * height,
-          size: Math.random() * 1.5 + 0.3,
-          alpha: Math.random() * 0.7 + 0.2,
-          color: Math.random() > 0.65 ? '#67e8f9' : Math.random() > 0.4 ? '#93c5fd' : '#f8fafc',
-        });
+      const colorChance = Math.random();
+      if (colorChance > 0.85) {
+        // Class O/B (Deep space electric cyan/blue)
+        starColors[i * 3] = 0.65; starColors[i * 3 + 1] = 0.92; starColors[i * 3 + 2] = 1.0;
+      } else if (colorChance > 0.45) {
+        // Class A (Crisp pure diamond white)
+        starColors[i * 3] = 0.98; starColors[i * 3 + 1] = 0.98; starColors[i * 3 + 2] = 1.0;
+      } else if (colorChance > 0.15) {
+        // Class F/G (Warm stellar solar yellow-white)
+        starColors[i * 3] = 1.0; starColors[i * 3 + 1] = 0.95; starColors[i * 3 + 2] = 0.85;
+      } else {
+        // Class K/M (Faint reddish-amber dwarf)
+        starColors[i * 3] = 1.0; starColors[i * 3 + 1] = 0.75; starColors[i * 3 + 2] = 0.6;
       }
-    };
-
-    handleResize();
-
-    // Use ResizeObserver to keep canvas strictly non-distorted under all window resizes
-    let resizeObserver: ResizeObserver | null = null;
-    if (typeof ResizeObserver !== 'undefined') {
-      resizeObserver = new ResizeObserver(() => {
-        handleResize();
-      });
-      resizeObserver.observe(container);
-    } else {
-      window.addEventListener('resize', handleResize);
     }
 
-    const render = () => {
-      ctx.clearRect(0, 0, width, height);
+    starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    starsGeometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+    const starsMaterial = new THREE.PointsMaterial({
+      size: 0.042, // Tiny, pinpoint realistic star size (not chunky dots)
+      sizeAttenuation: true,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.92,
+    });
+    const starField = new THREE.Points(starsGeometry, starsMaterial);
+    scene.add(starField);
 
-      const cx = width / 2;
-      const cy = height / 2;
+    // 4.1 Photorealistic 3D Comet (ধূমকেতু - Celestial Visitor with Dual Ion & Dust Tails)
+    const cometGroup = new THREE.Group();
+    scene.add(cometGroup);
 
-      // Deep void background
-      ctx.fillStyle = '#020408';
-      ctx.fillRect(0, 0, width, height);
+    // Glowing Icy Nucleus (নিউক্লিয়াস)
+    const nucleusGeom = new THREE.SphereGeometry(0.024, 16, 16);
+    const nucleusMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const nucleusMesh = new THREE.Mesh(nucleusGeom, nucleusMat);
+    cometGroup.add(nucleusMesh);
 
-      // ==========================================
-      // 1. FULL-WIDTH PANORAMIC GALAXY AMBIENCE
-      // ==========================================
-      const galaxyCoreGrad = ctx.createRadialGradient(
-        cx,
-        cy,
-        20,
-        cx,
-        cy,
-        Math.max(width * 0.65, height * 0.9)
-      );
-      galaxyCoreGrad.addColorStop(0, 'rgba(14, 116, 144, 0.16)');
-      galaxyCoreGrad.addColorStop(0.3, 'rgba(30, 58, 138, 0.11)');
-      galaxyCoreGrad.addColorStop(0.65, 'rgba(15, 23, 42, 0.05)');
-      galaxyCoreGrad.addColorStop(1, 'transparent');
+    // Coma Halo (আলোকবলয় - Sublimating Gas & Ice Envelope)
+    const comaGeom = new THREE.SphereGeometry(0.065, 16, 16);
+    const comaMat = new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.65,
+      blending: THREE.AdditiveBlending,
+    });
+    const comaMesh = new THREE.Mesh(comaGeom, comaMat);
+    cometGroup.add(comaMesh);
 
-      ctx.fillStyle = galaxyCoreGrad;
-      ctx.fillRect(0, 0, width, height);
+    // Comet Core Light Source
+    const cometLight = new THREE.PointLight(0x38bdf8, 2.2, 4.0);
+    cometGroup.add(cometLight);
 
-      // Render wide-field ambient galaxy stars
-      galaxyStars.forEach((star) => {
-        ctx.beginPath();
-        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-        ctx.fillStyle = star.color;
-        ctx.globalAlpha = star.alpha;
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
+    // Ion Tail (নীল আয়নিত গ্যাস পুচ্ছ - Thin, straight, high-energy cyan)
+    const ionTailGeom = new THREE.ConeGeometry(0.08, 2.2, 16, 1, true);
+    ionTailGeom.translate(0, 1.1, 0);
+    ionTailGeom.rotateX(Math.PI / 2);
+    const ionTailMat = new THREE.MeshBasicMaterial({
+      color: 0x06b6d4,
+      transparent: true,
+      opacity: 0.48,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+    });
+    const ionTailMesh = new THREE.Mesh(ionTailGeom, ionTailMat);
+    cometGroup.add(ionTailMesh);
+
+    // Dust Tail (সোনালী-সাদা ধূলিকণা পুচ্ছ - Curved, broad, diffused)
+    const dustTailGeom = new THREE.ConeGeometry(0.22, 1.8, 16, 1, true);
+    dustTailGeom.translate(0, 0.9, 0);
+    dustTailGeom.rotateX(Math.PI / 2);
+    dustTailGeom.rotateY(0.14);
+    const dustTailMat = new THREE.MeshBasicMaterial({
+      color: 0xfef08a,
+      transparent: true,
+      opacity: 0.25,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+    });
+    const dustTailMesh = new THREE.Mesh(dustTailGeom, dustTailMat);
+    cometGroup.add(dustTailMesh);
+
+    // Dust Particle Trail behind the comet
+    const dustTrailCount = 140;
+    const dustTrailGeom = new THREE.BufferGeometry();
+    const dustTrailPositions = new Float32Array(dustTrailCount * 3);
+    for (let p = 0; p < dustTrailCount; p++) {
+      dustTrailPositions[p * 3] = (Math.random() - 0.5) * 0.14;
+      dustTrailPositions[p * 3 + 1] = (Math.random() - 0.5) * 0.14;
+      dustTrailPositions[p * 3 + 2] = Math.random() * 2.2;
+    }
+    dustTrailGeom.setAttribute('position', new THREE.BufferAttribute(dustTrailPositions, 3));
+    const dustTrailMat = new THREE.PointsMaterial({
+      size: 0.022,
+      color: 0xa5f3fc,
+      transparent: true,
+      opacity: 0.65,
+      blending: THREE.AdditiveBlending,
+    });
+    const dustTrailPoints = new THREE.Points(dustTrailGeom, dustTrailMat);
+    cometGroup.add(dustTrailPoints);
+
+    // 4.2 Cosmic Shooting Star / Meteor Streak (উল্কাপাত)
+    const meteorGeom = new THREE.BufferGeometry();
+    const meteorPositions = new Float32Array(6);
+    meteorGeom.setAttribute('position', new THREE.BufferAttribute(meteorPositions, 3));
+    const meteorMat = new THREE.LineBasicMaterial({
+      color: 0x67e8f9,
+      transparent: true,
+      opacity: 0,
+      linewidth: 2,
+      blending: THREE.AdditiveBlending,
+    });
+    const meteorLine = new THREE.Line(meteorGeom, meteorMat);
+    scene.add(meteorLine);
+
+    let meteorActive = false;
+    let meteorStartTime = 0;
+    const meteorDuration = 0.75;
+    const meteorStart = new THREE.Vector3();
+    const meteorDir = new THREE.Vector3();
+
+    // 5. Lighting Setup
+    // Sun Directional Light (Bright, warm sunlight from upper right)
+    const sunLight = new THREE.DirectionalLight(0xfff8ee, 2.4);
+    sunLight.position.set(5, 3.2, 4);
+    scene.add(sunLight);
+
+    // Deep Space Ambient Light
+    const ambientLight = new THREE.AmbientLight(0x0a1628, 0.45);
+    scene.add(ambientLight);
+
+    // Subtle Cyan Rim Backlight
+    const rimLight = new THREE.DirectionalLight(0x06b6d4, 0.7);
+    rimLight.position.set(-6, -2, -4);
+    scene.add(rimLight);
+
+    // 6. Earth Group (Rotated together)
+    const earthGroup = new THREE.Group();
+    earthGroupRef.current = earthGroup;
+    scene.add(earthGroup);
+
+    const earthRadius = 1.0;
+    const earthSegments = 64;
+
+    // Load NASA Blue Marble Textures
+    const textureLoader = new THREE.TextureLoader();
+    const proceduralFallback = createProceduralEarthTexture();
+
+    // Earth Sphere Mesh
+    const earthGeometry = new THREE.SphereGeometry(earthRadius, earthSegments, earthSegments);
+    const earthMaterial = new THREE.MeshStandardMaterial({
+      map: proceduralFallback,
+      roughness: 0.65,
+      metalness: 0.1,
+    });
+
+    // Try loading authentic NASA texture maps
+    textureLoader.load(
+      'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg',
+      (tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        earthMaterial.map = tex;
+        earthMaterial.needsUpdate = true;
+      },
+      undefined,
+      () => {
+        // Silently use procedural fallback
+      }
+    );
+
+    textureLoader.load(
+      'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_specular_2048.jpg',
+      (specTex) => {
+        earthMaterial.roughnessMap = specTex;
+        earthMaterial.needsUpdate = true;
+      }
+    );
+
+    const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
+    earthMeshRef.current = earthMesh;
+    earthGroup.add(earthMesh);
+
+    // 7. Dynamic Atmosphere Clouds Layer
+    const cloudsGeometry = new THREE.SphereGeometry(earthRadius * 1.018, 48, 48);
+    const cloudsMaterial = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.35,
+      blending: THREE.AdditiveBlending,
+    });
+
+    textureLoader.load(
+      'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_1024.png',
+      (cloudTex) => {
+        cloudsMaterial.map = cloudTex;
+        cloudsMaterial.opacity = 0.55;
+        cloudsMaterial.needsUpdate = true;
+      }
+    );
+
+    const cloudsMesh = new THREE.Mesh(cloudsGeometry, cloudsMaterial);
+    cloudsMeshRef.current = cloudsMesh;
+    earthGroup.add(cloudsMesh);
+
+    // 8. Glowing Atmospheric Rayleigh Scatter Glow (Custom Fresnel Rim Shader)
+    const atmosphereGeometry = new THREE.SphereGeometry(earthRadius * 1.15, 36, 36);
+    const atmosphereShader = {
+      vertexShader: `
+        varying vec3 vNormal;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vNormal;
+        void main() {
+          float intensity = pow(0.68 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.2);
+          gl_FragColor = vec4(0.02, 0.71, 0.83, 1.0) * intensity * 1.35;
+        }
+      `,
+    };
+
+    const atmosphereMaterial = new THREE.ShaderMaterial({
+      vertexShader: atmosphereShader.vertexShader,
+      fragmentShader: atmosphereShader.fragmentShader,
+      blending: THREE.AdditiveBlending,
+      side: THREE.BackSide,
+      transparent: true,
+    });
+
+    const atmosphereMesh = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+    atmosphereMeshRef.current = atmosphereMesh;
+    scene.add(atmosphereMesh);
+
+    // 9. Hotspot Markers Attached Directly to 3D Sphere Surface
+    GLOBAL_DELTAS.forEach((delta) => {
+      const pos = latLngToVector3(delta.lat, delta.lng, earthRadius * 1.006);
+
+      // 3D Glowing Beacon Cylinder / Pin
+      const pinGeom = new THREE.CylinderGeometry(0.006, 0.002, 0.08, 12);
+      pinGeom.translate(0, 0.04, 0);
+      pinGeom.rotateX(Math.PI / 2);
+
+      const pinMat = new THREE.MeshBasicMaterial({
+        color: delta.accentHex,
+        transparent: true,
+        opacity: 0.9,
       });
 
-      // Smooth target interpolation if animating to Bangladesh
-      const rot = rotationRef.current;
-      if (rot.isAnimatingToTarget) {
-        rot.yaw += (rot.targetYaw - rot.yaw) * 0.08;
-        rot.pitch += (rot.targetPitch - rot.pitch) * 0.08;
-        if (Math.abs(rot.targetYaw - rot.yaw) < 0.1 && Math.abs(rot.targetPitch - rot.pitch) < 0.1) {
-          rot.yaw = rot.targetYaw;
-          rot.pitch = rot.targetPitch;
-          rot.isAnimatingToTarget = false;
-        }
-      } else if (!rot.isInteracting) {
-        // Momentum decay after drag
-        if (Math.abs(rot.vx) > 0.005) {
-          rot.yaw += rot.vx;
-          rot.vx *= 0.93;
-        } else if (isRotating) {
-          rot.yaw += 0.22; // Natural orbital planetary spin
-        }
+      const pinMesh = new THREE.Mesh(pinGeom, pinMat);
+      pinMesh.position.copy(pos);
+      pinMesh.lookAt(pos.clone().multiplyScalar(2));
+      earthGroup.add(pinMesh);
 
-        if (Math.abs(rot.vy) > 0.005) {
-          rot.pitch = Math.max(-65, Math.min(65, rot.pitch + rot.vy));
-          rot.vy *= 0.93;
-        }
-      }
-
-      cloudAngle = (cloudAngle + 0.26) % 360;
-
-      // True circular sphere radius based on strictly equal minDim
-      const currentZoom = zoomRef.current;
-      const minDim = Math.min(width, height);
-      // Fits comfortably with ample space for orbit rings and atmosphere glow
-      const baseRadius = (minDim * 0.355) * currentZoom;
-      const currentYaw = rot.yaw;
-      const currentPitch = rot.pitch;
-
-      // ==========================================
-      // 2. ATMOSPHERE RAYLEIGH SCATTERING (CIRCULAR LIMB GLOW)
-      // ==========================================
-      const atmosOuter = ctx.createRadialGradient(
-        cx,
-        cy,
-        baseRadius * 0.96,
-        cx,
-        cy,
-        baseRadius * 1.34
-      );
-      atmosOuter.addColorStop(0, 'rgba(6, 182, 212, 0.55)');
-      atmosOuter.addColorStop(0.22, 'rgba(14, 165, 233, 0.28)');
-      atmosOuter.addColorStop(0.55, 'rgba(37, 99, 235, 0.09)');
-      atmosOuter.addColorStop(1, 'transparent');
-
-      ctx.beginPath();
-      ctx.arc(cx, cy, baseRadius * 1.34, 0, Math.PI * 2);
-      ctx.fillStyle = atmosOuter;
-      ctx.fill();
-
-      // Inner corona
-      const atmosInner = ctx.createRadialGradient(
-        cx - baseRadius * 0.2,
-        cy - baseRadius * 0.25,
-        baseRadius * 0.5,
-        cx,
-        cy,
-        baseRadius * 1.04
-      );
-      atmosInner.addColorStop(0, 'transparent');
-      atmosInner.addColorStop(0.85, 'rgba(56, 189, 248, 0.15)');
-      atmosInner.addColorStop(1, 'rgba(6, 182, 212, 0.52)');
-
-      ctx.beginPath();
-      ctx.arc(cx, cy, baseRadius * 1.04, 0, Math.PI * 2);
-      ctx.fillStyle = atmosInner;
-      ctx.fill();
-
-      // ==========================================
-      // 3. REALISTIC OCEAN WATER BODY (PURE CIRCULAR SPHERE)
-      // ==========================================
-      const sunX = cx - baseRadius * 0.38;
-      const sunY = cy - baseRadius * 0.38;
-
-      const oceanGrad = ctx.createRadialGradient(
-        sunX,
-        sunY,
-        baseRadius * 0.06,
-        cx,
-        cy,
-        baseRadius
-      );
-      oceanGrad.addColorStop(0, '#2563eb');     // Sunlight reflection glint
-      oceanGrad.addColorStop(0.18, '#0284c7');  // Tropical blue
-      oceanGrad.addColorStop(0.48, '#034a78');  // Deep abyssal plain
-      oceanGrad.addColorStop(0.82, '#081e3a');  // Shadow twilight
-      oceanGrad.addColorStop(1, '#020b18');     // Planet edge
-
-      ctx.beginPath();
-      ctx.arc(cx, cy, baseRadius, 0, Math.PI * 2);
-      ctx.fillStyle = oceanGrad;
-      ctx.shadowColor = 'rgba(6, 182, 212, 0.38)';
-      ctx.shadowBlur = 32;
-      ctx.fill();
-      ctx.shadowBlur = 0;
-
-      // ==========================================
-      // 4. CLIP TO PLANET SPHERE
-      // ==========================================
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, baseRadius, 0, Math.PI * 2);
-      ctx.clip();
-
-      // 4.1 Graticule lines (Strictly circular projection)
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
-      ctx.lineWidth = 0.8;
-      for (let lat = -60; lat <= 60; lat += 20) {
-        ctx.beginPath();
-        let started = false;
-        for (let lng = 0; lng <= 360; lng += 6) {
-          const pt = project3D(lat, lng, currentYaw, currentPitch, baseRadius, cx, cy);
-          if (pt.visible) {
-            if (!started) {
-              ctx.moveTo(pt.x, pt.y);
-              started = true;
-            } else {
-              ctx.lineTo(pt.x, pt.y);
-            }
-          } else {
-            started = false;
-          }
-        }
-        ctx.stroke();
-      }
-
-      for (let lng = 0; lng < 360; lng += 30) {
-        ctx.beginPath();
-        let started = false;
-        for (let lat = -80; lat <= 80; lat += 5) {
-          const pt = project3D(lat, lng, currentYaw, currentPitch, baseRadius, cx, cy);
-          if (pt.visible) {
-            if (!started) {
-              ctx.moveTo(pt.x, pt.y);
-              started = true;
-            } else {
-              ctx.lineTo(pt.x, pt.y);
-            }
-          } else {
-            started = false;
-          }
-        }
-        ctx.stroke();
-      }
-
-      // 4.2 Continents & Biomes
-      continents.forEach((continent) => {
-        ctx.beginPath();
-        let firstPoint = true;
-        let drawnCount = 0;
-
-        continent.points.forEach(([lat, lng]) => {
-          const pt = project3D(lat, lng, currentYaw, currentPitch, baseRadius, cx, cy);
-          if (pt.visible) {
-            if (firstPoint) {
-              ctx.moveTo(pt.x, pt.y);
-              firstPoint = false;
-            } else {
-              ctx.lineTo(pt.x, pt.y);
-            }
-            drawnCount++;
-          }
-        });
-
-        if (drawnCount > 2) {
-          ctx.closePath();
-          ctx.fillStyle = continent.fill;
-          ctx.fill();
-
-          ctx.strokeStyle = continent.stroke;
-          ctx.lineWidth = continent.strokeWidth;
-          ctx.stroke();
-        }
+      // Pulse Ring Mesh on surface
+      const ringGeom = new THREE.RingGeometry(0.015, 0.025, 24);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: delta.accentHex,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.8,
       });
+      const ringMesh = new THREE.Mesh(ringGeom, ringMat);
+      ringMesh.position.copy(pos.clone().multiplyScalar(1.002));
+      ringMesh.lookAt(pos.clone().multiplyScalar(2));
+      earthGroup.add(ringMesh);
+    });
 
-      // 4.3 Bengal Sediment Plume in Bay of Bengal
-      const bdPlume = project3D(21.4, 90.2, currentYaw, currentPitch, baseRadius, cx, cy);
-      if (bdPlume.visible) {
-        const plumeGrad = ctx.createRadialGradient(
-          bdPlume.x,
-          bdPlume.y,
-          2,
-          bdPlume.x,
-          bdPlume.y + 16,
-          46 * currentZoom
+    // 10. Orbiting Satellites Group (NISAR & Sentinel-1)
+    const satellitesGroup = new THREE.Group();
+    satellitesGroupRef.current = satellitesGroup;
+    scene.add(satellitesGroup);
+
+    // NISAR Orbit (Inclination ~98.4°, altitude ~747km)
+    const nisarOrbitRadius = earthRadius * 1.48;
+    const nisarOrbitCurve = new THREE.EllipseCurve(0, 0, nisarOrbitRadius, nisarOrbitRadius, 0, Math.PI * 2, false, 0);
+    const nisarPoints = nisarOrbitCurve.getPoints(64);
+    const nisarOrbitGeom = new THREE.BufferGeometry().setFromPoints(nisarPoints.map((p) => new THREE.Vector3(p.x, 0, p.y)));
+    const nisarOrbitMat = new THREE.LineDashedMaterial({
+      color: 0x06b6d4,
+      dashSize: 0.08,
+      gapSize: 0.04,
+      transparent: true,
+      opacity: 0.45,
+    });
+    const nisarOrbitLine = new THREE.Line(nisarOrbitGeom, nisarOrbitMat);
+    nisarOrbitLine.computeLineDistances();
+    nisarOrbitLine.rotation.x = THREE.MathUtils.degToRad(-28);
+    satellitesGroup.add(nisarOrbitLine);
+
+    // NISAR 3D Satellite Body
+    const satGeom = new THREE.BoxGeometry(0.04, 0.02, 0.03);
+    const nisarMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.8, roughness: 0.2 });
+    const nisarMesh = new THREE.Mesh(satGeom, nisarMat);
+
+    // Solar panels
+    const panelGeom = new THREE.BoxGeometry(0.12, 0.004, 0.03);
+    const panelMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.9, roughness: 0.1 });
+    const panelMesh = new THREE.Mesh(panelGeom, panelMat);
+    nisarMesh.add(panelMesh);
+    satellitesGroup.add(nisarMesh);
+
+    // Radar Scanning Cone
+    const radarConeGeom = new THREE.ConeGeometry(0.24, nisarOrbitRadius - earthRadius, 16, 1, true);
+    radarConeGeom.translate(0, (nisarOrbitRadius - earthRadius) / 2, 0);
+    radarConeGeom.rotateX(Math.PI);
+    const radarConeMat = new THREE.MeshBasicMaterial({
+      color: 0x06b6d4,
+      transparent: true,
+      opacity: 0.18,
+      side: THREE.DoubleSide,
+    });
+    const radarConeMesh = new THREE.Mesh(radarConeGeom, radarConeMat);
+    nisarMesh.add(radarConeMesh);
+
+    // 11. Animation Loop
+    let animFrameId: number;
+    let clock = new THREE.Clock();
+
+    const animate = () => {
+      animFrameId = requestAnimationFrame(animate);
+      const elapsedTime = clock.getElapsedTime();
+
+      // Auto-rotation when not dragging
+      if (isRotating && !isDraggingRef.current) {
+        targetRotationRef.current.y += 0.0022; // Natural slow planetary spin
+      }
+
+      // Smooth camera / globe rotation damping
+      currentRotationRef.current.x += (targetRotationRef.current.x - currentRotationRef.current.x) * 0.08;
+      currentRotationRef.current.y += (targetRotationRef.current.y - currentRotationRef.current.y) * 0.08;
+
+      if (earthGroupRef.current) {
+        earthGroupRef.current.rotation.x = currentRotationRef.current.x;
+        earthGroupRef.current.rotation.y = currentRotationRef.current.y;
+      }
+
+      // Atmospheric clouds slightly faster rotation
+      if (cloudsMeshRef.current) {
+        cloudsMeshRef.current.rotation.y = currentRotationRef.current.y * 1.08 + elapsedTime * 0.005;
+        cloudsMeshRef.current.visible = showClouds;
+      }
+
+      // Starfield subtle cosmic rotation
+      starField.rotation.y = elapsedTime * 0.0006;
+      starField.rotation.x = elapsedTime * 0.0003;
+
+      // Comet (ধূমকেতু) Celestial Trajectory & Tail Dynamics
+      const cometCycle = (elapsedTime * 0.16) % (Math.PI * 2);
+      const cometRadius = 4.2;
+      const cometX = Math.cos(cometCycle) * cometRadius - 0.5;
+      const cometY = Math.sin(cometCycle) * 2.2 + 0.8;
+      const cometZ = Math.sin(cometCycle * 2) * 1.6 - 2.8;
+      cometGroup.position.set(cometX, cometY, cometZ);
+
+      // Tail always points directly away from the Sun (sun is at [5, 3.2, 4])
+      const sunPos = new THREE.Vector3(5, 3.2, 4);
+      const tailDir = cometGroup.position.clone().sub(sunPos).normalize();
+      cometGroup.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tailDir);
+
+      // Coma pulsation & dust trail rotation
+      comaMesh.scale.setScalar(1 + Math.sin(elapsedTime * 8) * 0.08);
+      dustTrailPoints.rotation.z += 0.015;
+
+      // Cosmic Shooting Star / Meteor Streak (উল্কাপাত)
+      if (!meteorActive && Math.random() < 0.018) {
+        meteorActive = true;
+        meteorStartTime = elapsedTime;
+        meteorStart.set(
+          (Math.random() - 0.5) * 5.5,
+          1.8 + Math.random() * 2.2,
+          -1.0 + (Math.random() - 0.5) * 2.5
         );
-        plumeGrad.addColorStop(0, 'rgba(56, 189, 248, 0.45)');
-        plumeGrad.addColorStop(0.5, 'rgba(14, 116, 144, 0.22)');
-        plumeGrad.addColorStop(1, 'transparent');
-        ctx.fillStyle = plumeGrad;
-        ctx.beginPath();
-        ctx.ellipse(bdPlume.x, bdPlume.y + 12, 36 * currentZoom, 20 * currentZoom, Math.PI / 7, 0, Math.PI * 2);
-        ctx.fill();
+        meteorDir.set(
+          -(0.7 + Math.random() * 0.5),
+          -(0.5 + Math.random() * 0.4),
+          (Math.random() - 0.5) * 0.3
+        ).normalize();
       }
 
-      // 4.4 Dynamic Clouds
-      if (showClouds) {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
-        for (let c = 0; c < 16; c++) {
-          const cLat = ((c % 7) - 3) * 14;
-          const cLng = c * 22.5 + cloudAngle;
-          const cloudPt = project3D(cLat, cLng, currentYaw * 0.92, currentPitch, baseRadius, cx, cy);
+      if (meteorActive) {
+        const meteorAge = elapsedTime - meteorStartTime;
+        if (meteorAge > meteorDuration) {
+          meteorActive = false;
+          meteorMat.opacity = 0;
+        } else {
+          const progress = meteorAge / meteorDuration;
+          const speed = 9.0;
+          const headPos = meteorStart.clone().add(meteorDir.clone().multiplyScalar(progress * speed));
+          const tailPos = headPos.clone().sub(meteorDir.clone().multiplyScalar(0.85 * (1 - progress * 0.2)));
 
-          if (cloudPt.visible) {
-            ctx.beginPath();
-            ctx.ellipse(
-              cloudPt.x,
-              cloudPt.y,
-              baseRadius * 0.26,
-              baseRadius * 0.08,
-              (c * Math.PI) / 5,
-              0,
-              Math.PI * 2
-            );
-            ctx.fill();
-          }
-        }
-
-        // Monsoon Cyclone in Bay of Bengal
-        const monsoonCyclone = project3D(18.5, 88.5, currentYaw * 0.92, currentPitch, baseRadius, cx, cy);
-        if (monsoonCyclone.visible) {
-          ctx.save();
-          ctx.translate(monsoonCyclone.x, monsoonCyclone.y);
-          ctx.rotate((cloudAngle * Math.PI) / 90);
-          ctx.beginPath();
-          ctx.ellipse(0, 0, 42 * currentZoom, 18 * currentZoom, 0, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.24)';
-          ctx.fill();
-          ctx.restore();
+          const posAttr = meteorGeom.getAttribute('position') as THREE.BufferAttribute;
+          posAttr.setXYZ(0, headPos.x, headPos.y, headPos.z);
+          posAttr.setXYZ(1, tailPos.x, tailPos.y, tailPos.z);
+          posAttr.needsUpdate = true;
+          meteorMat.opacity = Math.sin(progress * Math.PI) * 0.9;
         }
       }
 
-      // 4.5 Solar Day-Night Terminator
-      const terminatorGrad = ctx.createLinearGradient(
-        cx - baseRadius * 0.7,
-        cy - baseRadius * 0.7,
-        cx + baseRadius * 0.85,
-        cy + baseRadius * 0.85
-      );
-      terminatorGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-      terminatorGrad.addColorStop(0.38, 'rgba(3, 7, 18, 0.15)');
-      terminatorGrad.addColorStop(0.68, 'rgba(2, 6, 23, 0.75)');
-      terminatorGrad.addColorStop(1, 'rgba(2, 6, 23, 0.96)');
+      // Orbit NISAR Satellite
+      const satAngle = elapsedTime * 0.65;
+      const satX = nisarOrbitRadius * Math.cos(satAngle);
+      const satZ = nisarOrbitRadius * Math.sin(satAngle);
+      const satPos = new THREE.Vector3(satX, 0, satZ);
+      satPos.applyAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(-28));
+      nisarMesh.position.copy(satPos);
+      nisarMesh.lookAt(0, 0, 0);
 
-      ctx.fillStyle = terminatorGrad;
-      ctx.fillRect(cx - baseRadius * 1.2, cy - baseRadius * 1.2, baseRadius * 2.4, baseRadius * 2.4);
+      radarConeMesh.visible = showRadarBeams;
+      radarConeMat.opacity = 0.15 + Math.sin(elapsedTime * 6) * 0.08; // Pulsing radar scan
 
-      // 4.6 Night-Side City Lights
-      if (showCityLights) {
-        cityLights.forEach((city) => {
-          const pt = project3D(city.lat, city.lng, currentYaw, currentPitch, baseRadius, cx, cy);
-          if (pt.visible) {
-            const nightFactor = Math.max(0, (pt.x - (cx - 35)) / baseRadius);
-            if (nightFactor > 0.12) {
-              const alpha = Math.min(1, nightFactor * city.intensity * 0.95);
-              ctx.beginPath();
-              ctx.arc(pt.x, pt.y, 2.2, 0, Math.PI * 2);
-              ctx.fillStyle = `rgba(253, 224, 71, ${alpha})`;
-              ctx.shadowColor = '#f59e0b';
-              ctx.shadowBlur = 7;
-              ctx.fill();
-              ctx.shadowBlur = 0;
-            }
-          }
+      // Smooth zoom distance damping
+      zoomDistanceRef.current += (targetZoomDistanceRef.current - zoomDistanceRef.current) * 0.1;
+      camera.position.z = zoomDistanceRef.current;
+
+      // Project 3D Hotspot positions to 2D screen coordinates for high-tech HUD badges
+      if (cameraRef.current && earthGroupRef.current && rendererRef.current) {
+        const tempV = new THREE.Vector3();
+        const screenCoords = GLOBAL_DELTAS.map((delta) => {
+          const worldPos = latLngToVector3(delta.lat, delta.lng, earthRadius * 1.01);
+          worldPos.applyEuler(earthGroupRef.current!.rotation);
+
+          // Check if facing camera (dot product > 0)
+          tempV.copy(worldPos).normalize();
+          const dot = tempV.dot(camera.position.clone().normalize());
+
+          worldPos.project(camera);
+
+          const halfWidth = width / 2;
+          const halfHeight = height / 2;
+
+          return {
+            id: delta.id,
+            x: worldPos.x * halfWidth + halfWidth,
+            y: -(worldPos.y * halfHeight) + halfHeight,
+            visible: dot > 0.08,
+          };
         });
+
+        setScreenHotspots(screenCoords);
       }
 
-      ctx.restore(); // End Sphere Clip
-
-      // ==========================================
-      // 5. BANGLADESH TARGET LOCATOR & RADAR RETICLE
-      // ==========================================
-      const bdPt = project3D(23.8, 90.4, currentYaw, currentPitch, baseRadius, cx, cy);
-
-      if (bdPt.visible) {
-        pulseRing = (pulseRing + 0.38) % 36;
-
-        ctx.beginPath();
-        ctx.arc(bdPt.x, bdPt.y, pulseRing, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(6, 182, 212, ${Math.max(0, 1 - pulseRing / 36)})`;
-        ctx.lineWidth = 1.8;
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc(bdPt.x, bdPt.y, Math.max(0, pulseRing - 14), 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(56, 189, 248, ${Math.max(0, 1 - pulseRing / 36)})`;
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc(bdPt.x, bdPt.y, 6.5, 0, Math.PI * 2);
-        ctx.fillStyle = '#06b6d4';
-        ctx.shadowColor = '#38bdf8';
-        ctx.shadowBlur = 18;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-        ctx.fillRect(bdPt.x + 10, bdPt.y - 12, 138, 34);
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 11px JetBrains Mono, monospace';
-        ctx.fillText('BANGLADESH · JAMUNA', bdPt.x + 14, bdPt.y + 2);
-
-        ctx.fillStyle = '#38bdf8';
-        ctx.font = '10px JetBrains Mono, monospace';
-        ctx.fillText('23.8° N 90.4° E · SAR ACTIVE', bdPt.x + 14, bdPt.y + 16);
-      }
-
-      // ==========================================
-      // 6. ORBITING SATELLITES & ACTIVE RADAR CONES
-      // ==========================================
-      const renderSatellite3D = (
-        orbitR: number,
-        orbitTiltDeg: number,
-        colorHex: string,
-        satName: string,
-        speedMultiplier: number,
-        frequencyBand: string
-      ) => {
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate((orbitTiltDeg * Math.PI) / 180);
-
-        ctx.beginPath();
-        ctx.ellipse(0, 0, orbitR, orbitR * 0.44, 0, 0, Math.PI * 2);
-        ctx.strokeStyle = colorHex.replace('1)', '0.35)');
-        ctx.lineWidth = 1.2;
-        ctx.setLineDash([5, 5]);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        const satAngle = ((currentYaw * speedMultiplier * 1.35) * Math.PI) / 180;
-        const satX = orbitR * Math.cos(satAngle);
-        const satY = orbitR * 0.44 * Math.sin(satAngle);
-
-        if (showRadarBeams && bdPt.visible) {
-          const targetInCoordsX = bdPt.x - cx;
-          const targetInCoordsY = bdPt.y - cy;
-          const distToTarget = Math.hypot(satX - targetInCoordsX, satY - targetInCoordsY);
-
-          if (distToTarget < baseRadius * 1.1) {
-            radarWaveOffset = (radarWaveOffset + 0.08) % 1;
-            const coneGrad = ctx.createLinearGradient(satX, satY, targetInCoordsX, targetInCoordsY);
-            coneGrad.addColorStop(0, colorHex.replace('1)', '0.75)'));
-            coneGrad.addColorStop(0.5, colorHex.replace('1)', '0.22)'));
-            coneGrad.addColorStop(1, 'rgba(6, 182, 212, 0.03)');
-
-            ctx.beginPath();
-            ctx.moveTo(satX, satY);
-            ctx.lineTo(targetInCoordsX - 22, targetInCoordsY);
-            ctx.lineTo(targetInCoordsX + 22, targetInCoordsY);
-            ctx.closePath();
-            ctx.fillStyle = coneGrad;
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.moveTo(satX, satY);
-            ctx.lineTo(targetInCoordsX, targetInCoordsY);
-            ctx.strokeStyle = colorHex.replace('1)', '0.85)');
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-          }
-        }
-
-        ctx.beginPath();
-        ctx.arc(satX, satY, 6, 0, Math.PI * 2);
-        ctx.fillStyle = colorHex;
-        ctx.shadowColor = colorHex;
-        ctx.shadowBlur = 14;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(satX - 8, satY);
-        ctx.lineTo(satX + 8, satY);
-        ctx.stroke();
-
-        ctx.fillStyle = colorHex;
-        ctx.font = 'bold 10px JetBrains Mono, monospace';
-        ctx.fillText(`${satName} [${frequencyBand}]`, satX + 12, satY - 4);
-
-        ctx.restore();
-      };
-
-      renderSatellite3D(baseRadius * 1.35, -28, 'rgba(6, 182, 212, 1)', 'NISAR', 1.25, 'L-BAND');
-      renderSatellite3D(baseRadius * 1.55, 36, 'rgba(245, 158, 11, 1)', 'SENTINEL-1', 0.92, 'C-BAND');
-
-      // Top and bottom edge gradient fades for seamless theme integration
-      const topFade = ctx.createLinearGradient(0, 0, 0, 50);
-      topFade.addColorStop(0, '#020408');
-      topFade.addColorStop(1, 'transparent');
-      ctx.fillStyle = topFade;
-      ctx.fillRect(0, 0, width, 50);
-
-      const bottomFade = ctx.createLinearGradient(0, height - 50, 0, height);
-      bottomFade.addColorStop(0, 'transparent');
-      bottomFade.addColorStop(1, '#020408');
-      ctx.fillStyle = bottomFade;
-      ctx.fillRect(0, height - 50, width, 50);
-
-      animId = requestAnimationFrame(render);
+      renderer.render(scene, camera);
     };
 
-    render();
+    animate();
+
+    // Resize handler
+    const handleResize = () => {
+      if (!container || !renderer || !camera) return;
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    };
+
+    window.addEventListener('resize', handleResize);
 
     return () => {
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-      } else {
-        window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animFrameId);
+      window.removeEventListener('resize', handleResize);
+      if (renderer.domElement && container.contains(renderer.domElement)) {
+        container.removeChild(renderer.domElement);
       }
-      cancelAnimationFrame(animId);
+      renderer.dispose();
     };
-  }, [isRotating, showClouds, showCityLights, showRadarBeams]);
+  }, []);
 
-  // Pointer & Drag Handlers with Pointer Capture
+  // Pointer drag to spin 360° on any device
   const handlePointerDown = (e: React.PointerEvent) => {
-    if (e.button !== 0) return;
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    } catch {
-      // Ignore
-    }
-
-    setIsDragging(true);
-    const rot = rotationRef.current;
-    rot.isInteracting = true;
-    rot.isAnimatingToTarget = false;
-    rot.lastX = e.clientX;
-    rot.lastY = e.clientY;
-    rot.lastTime = performance.now();
-    rot.vx = 0;
-    rot.vy = 0;
-    rot.dragDistance = 0;
+    isDraggingRef.current = true;
+    previousMousePositionRef.current = { x: e.clientX, y: e.clientY };
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    const rot = rotationRef.current;
-    if (!rot.isInteracting) return;
+    if (!isDraggingRef.current) return;
 
-    const dx = e.clientX - rot.lastX;
-    const dy = e.clientY - rot.lastY;
-    const now = performance.now();
-    const dt = Math.max(1, now - rot.lastTime);
+    const deltaX = e.clientX - previousMousePositionRef.current.x;
+    const deltaY = e.clientY - previousMousePositionRef.current.y;
 
-    rot.dragDistance += Math.hypot(dx, dy);
+    targetRotationRef.current.y += deltaX * 0.006;
+    targetRotationRef.current.x = Math.max(-1.1, Math.min(1.1, targetRotationRef.current.x + deltaY * 0.006));
 
-    rot.yaw += dx * 0.42;
-    rot.pitch = Math.max(-65, Math.min(65, rot.pitch - dy * 0.35));
-
-    rot.vx = (dx / dt) * 4.2;
-    rot.vy = (-dy / dt) * 3.5;
-
-    rot.lastX = e.clientX;
-    rot.lastY = e.clientY;
-    rot.lastTime = now;
+    previousMousePositionRef.current = { x: e.clientX, y: e.clientY };
   };
 
-  const handlePointerUp = (e: React.PointerEvent) => {
-    try {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    } catch {
-      // Ignore
-    }
-
-    setIsDragging(false);
-    const rot = rotationRef.current;
-    rot.isInteracting = false;
-
-    if (rot.dragDistance < 6) {
-      if (onSelectBangladesh) onSelectBangladesh();
-    }
+  const handlePointerUp = () => {
+    isDraggingRef.current = false;
   };
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
-    const delta = e.deltaY * -0.0015;
-    setZoomLevel((prev) => Math.max(0.8, Math.min(1.85, prev + delta)));
+    const delta = e.deltaY * 0.0015;
+    targetZoomDistanceRef.current = Math.max(1.7, Math.min(3.6, targetZoomDistanceRef.current + delta));
   };
 
-  const handleFocusBangladesh = () => {
-    const rot = rotationRef.current;
-    rot.targetYaw = 28;
-    rot.targetPitch = 16;
-    rot.vx = 0;
-    rot.vy = 0;
-    rot.isAnimatingToTarget = true;
-    setZoomLevel(1.2);
+  // Fly Camera to selected Hotspot
+  const handleFocusHotspot = (hotspot: RiverDeltaHotspot) => {
+    setSelectedHotspot(hotspot);
+
+    // Calculate rotation angles to bring hotspot to center
+    const targetY = -((hotspot.lng + 180) * (Math.PI / 180)) + Math.PI / 2;
+    const targetX = hotspot.lat * (Math.PI / 180) * 0.55;
+
+    targetRotationRef.current.y = targetY;
+    targetRotationRef.current.x = targetX;
+    targetZoomDistanceRef.current = 2.15; // Smooth zoom into river reach
   };
+
+  const activeHotspot = hoveredHotspot || selectedHotspot;
 
   return (
     <div className="relative w-full overflow-hidden select-none py-2 my-2 bg-[#020408]">
       
-      {/* Top Telemetry Header Bar */}
+      {/* 1. TOP TELEMETRY STATUS BAR */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col xs:flex-row items-center justify-between py-2 text-[10px] sm:text-xs font-mono text-slate-300 gap-2 mb-2">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-          <span className="text-cyan-400 font-bold uppercase tracking-wider">3D PLANETARY OBSERVATORY · FULL-WIDTH GALAXY STAGE</span>
+          <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+          <span className="text-cyan-400 font-bold uppercase tracking-wider">
+            3D PLANETARY OBSERVATORY · FULL-WIDTH GALAXY STAGE
+          </span>
         </div>
         <div className="flex items-center gap-3 sm:gap-5 text-[9px] sm:text-[11px]">
-          <span>ORBIT: <strong className="text-white">747 KM</strong></span>
-          <span>LAT: <strong className="text-white">23.8° N · BD</strong></span>
-          <span className="text-emerald-400 font-bold">● SAR MICROWAVE ACTIVE</span>
+          <span className="hidden sm:inline-flex items-center gap-1 text-cyan-300">
+            <Sparkles className="w-3 h-3 text-cyan-400 animate-spin" style={{ animationDuration: '6s' }} />
+            <span>COMET & METEOR ACTIVE</span>
+          </span>
+          <span>ORBIT: <strong className="text-white">747 KM · NISAR L-BAND</strong></span>
+          <span>TARGET: <strong className="text-cyan-300">{activeHotspot ? activeHotspot.name.split('(')[0] : 'BENGAL DELTA'}</strong></span>
+          <span className="text-emerald-400 font-bold flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>PHOTOREALISTIC 3D</span>
+          </span>
         </div>
       </div>
 
-      {/* Main Full-Width Panoramic Planet & Galaxy Canvas Stage */}
+      {/* 2. QUICK RIVER DELTA NAVIGATION CHIPS */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none text-[10px] font-mono">
+        <span className="text-slate-500 uppercase tracking-wider text-[9px] mr-1 flex items-center gap-1 shrink-0">
+          <Globe className="w-3.5 h-3.5 text-cyan-400" />
+          <span>QUICK RIVER FOCUS:</span>
+        </span>
+        {GLOBAL_DELTAS.map((d) => {
+          const isActive = selectedHotspot?.id === d.id;
+          return (
+            <button
+              key={d.id}
+              onClick={() => handleFocusHotspot(d)}
+              className={`px-3 py-1 rounded-full border transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 active:scale-95 ${
+                isActive
+                  ? 'bg-cyan-500/25 border-cyan-400 text-white font-bold shadow-[0_0_15px_rgba(6,182,212,0.45)]'
+                  : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: d.color }} />
+              <span>{d.name.split('(')[0].trim()}</span>
+              <span className="text-[8px] text-slate-500">({d.country})</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 3. MAIN FULL-WIDTH 3D THREE.JS CANVAS STAGE */}
       <div
-        ref={containerRef}
-        style={{ touchAction: 'none' }}
-        className={`relative w-full h-[260px] xs:h-[320px] sm:h-[440px] md:h-[540px] ${
-          isDragging ? 'cursor-grabbing' : 'cursor-grab'
-        } transition-transform duration-300 flex items-center justify-center overflow-hidden`}
+        className="relative w-full h-[320px] xs:h-[400px] sm:h-[500px] md:h-[620px] cursor-grab active:cursor-grabbing overflow-hidden"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
+        onPointerLeave={handlePointerUp}
         onWheel={handleWheel}
       >
-        <canvas
-          ref={canvasRef}
-          className="block filter drop-shadow-[0_0_60px_rgba(6,182,212,0.25)] mx-auto"
-        />
+        {/* Three.js Mount Canvas Container */}
+        <div ref={mountRef} className="w-full h-full" />
 
-        {/* Interactive Cue Badge */}
-        <div className="absolute top-2.5 sm:top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full glass-panel border border-cyan-500/30 text-[9px] sm:text-[11px] font-mono text-cyan-300 shadow-xl pointer-events-none whitespace-nowrap">
-          <Move className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-cyan-400 animate-pulse" />
-          <span>DRAG TO SPIN 360° · SCROLL TO ZOOM</span>
+        {/* Floating 2D Screen-Projected Hotspot Badges on 3D Globe */}
+        {screenHotspots.map((pt) => {
+          const delta = GLOBAL_DELTAS.find((d) => d.id === pt.id);
+          if (!delta || !pt.visible) return null;
+
+          const isSelected = selectedHotspot?.id === delta.id;
+          const isBD = delta.id === 'bangladesh';
+
+          return (
+            <div
+              key={delta.id}
+              style={{
+                left: `${pt.x}px`,
+                top: `${pt.y}px`,
+                transform: 'translate(-50%, -100%)',
+              }}
+              className="absolute pointer-events-auto z-10 -mt-2 transition-transform duration-150"
+              onMouseEnter={() => setHoveredHotspot(delta)}
+              onMouseLeave={() => setHoveredHotspot(null)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleFocusHotspot(delta);
+              }}
+            >
+              <div className="flex flex-col items-center group cursor-pointer">
+                {/* Identification HUD Badge */}
+                <div
+                  className={`px-2.5 py-1 rounded-xl text-[10px] font-mono whitespace-nowrap shadow-2xl transition-all duration-300 flex items-center gap-1.5 backdrop-blur-md ${
+                    isSelected || isBD
+                      ? 'bg-slate-950/90 border border-cyan-400 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)] scale-105'
+                      : 'bg-slate-950/80 border border-slate-800 text-slate-300 hover:border-cyan-500/50 hover:text-white'
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full animate-ping" style={{ backgroundColor: delta.color }} />
+                  <span className="font-bold">{delta.name.split('(')[0].trim().toUpperCase()}</span>
+                  <span className="text-[8px] text-slate-400">· {delta.country}</span>
+                </div>
+
+                {/* Vertical Stalk Pin Indicator */}
+                <div className="w-0.5 h-3 bg-gradient-to-b from-cyan-400 to-transparent" />
+                <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#06b6d4]" />
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Center Instructions Hint */}
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full glass-panel border border-cyan-500/30 text-[9px] sm:text-[11px] font-mono text-cyan-300 shadow-xl pointer-events-none whitespace-nowrap">
+          <Move className="w-3 h-3 text-cyan-400 animate-pulse" />
+          <span>DRAG 3D EARTH TO ROTATE 360° · SCROLL TO ZOOM · CLICK HOTSPOT</span>
         </div>
 
-        {/* Floating Controls Overlay (Compact for Desktop, Tablet & Mobile) */}
-        <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1 sm:gap-2 px-2 sm:px-3.5 py-1 sm:py-1.5 glass-panel rounded-full border border-slate-700/80 shadow-2xl z-20 backdrop-blur-md max-w-[98%] overflow-x-auto">
+        {/* Top-Right Floating Detailed Sector Telemetry Card */}
+        {activeHotspot && (
+          <div className="absolute top-4 right-4 sm:right-6 max-w-xs sm:max-w-sm p-4 glass-panel-cyan rounded-2xl border border-cyan-500/50 text-xs font-mono shadow-2xl backdrop-blur-xl space-y-2 pointer-events-auto hidden sm:block animate-in fade-in slide-in-from-right-4 duration-300">
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: activeHotspot.color }} />
+                <span className="text-cyan-400 font-bold uppercase text-[11px]">{activeHotspot.country}</span>
+              </div>
+              <span className={`px-2 py-0.5 rounded text-[8px] font-bold ${
+                activeHotspot.status === 'CRITICAL' 
+                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' 
+                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+              }`}>
+                {activeHotspot.status}
+              </span>
+            </div>
+
+            <h4 className="font-bold text-white text-sm leading-snug">
+              {activeHotspot.name}
+            </h4>
+
+            <div className="text-[10px] text-slate-400">
+              River System: <strong className="text-slate-200">{activeHotspot.riverSystem}</strong>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 p-2 rounded-xl bg-slate-950/80 border border-slate-800 text-[10px]">
+              <div>
+                <span className="text-slate-500 block">Coordinates:</span>
+                <span className="text-cyan-300 font-bold">{activeHotspot.lat.toFixed(1)}° N, {activeHotspot.lng.toFixed(1)}° E</span>
+              </div>
+              <div>
+                <span className="text-slate-500 block">Bankline Shift:</span>
+                <span className="text-rose-400 font-bold">-{activeHotspot.retreatRateM} m/yr</span>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-slate-300 font-sans leading-relaxed">
+              {activeHotspot.keyFeature}
+            </p>
+
+            <div className="pt-2 flex items-center justify-between border-t border-slate-800/80">
+              <button
+                onClick={() => handleFocusHotspot(activeHotspot)}
+                className="text-[10px] text-cyan-400 hover:text-white flex items-center gap-1 font-bold"
+              >
+                <Compass className="w-3 h-3" />
+                <span>LOCK CAMERA</span>
+              </button>
+
+              {onNavigateToObservatory && (
+                <button
+                  onClick={onNavigateToObservatory}
+                  className="px-2.5 py-1 rounded-lg bg-cyan-500 text-slate-950 font-bold text-[10px] hover:bg-cyan-400 transition-all active:scale-95 flex items-center gap-1"
+                >
+                  <span>NASA GIBS MAP</span>
+                  <ExternalLink className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Bottom Floating Control Bar */}
+        <div className="absolute bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-1 sm:gap-2 px-3 py-1.5 glass-panel rounded-full border border-slate-700/80 shadow-2xl z-20 backdrop-blur-md max-w-[96%] overflow-x-auto">
           
           {/* Play/Pause Auto-spin */}
           <button
@@ -898,53 +1012,53 @@ export const EarthGlobe: React.FC<EarthGlobeProps> = ({ onSelectBangladesh, onSe
               e.stopPropagation();
               setIsRotating(!isRotating);
             }}
-            className="p-1 sm:p-1.5 text-slate-300 hover:text-cyan-400 transition-colors min-w-[30px] min-h-[30px] flex items-center justify-center active:scale-95"
+            className="p-1.5 text-slate-300 hover:text-cyan-400 transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center active:scale-95"
             title={isRotating ? 'Pause Auto-Spin' : 'Resume Auto-Spin'}
           >
-            {isRotating ? <Pause className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+            {isRotating ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
           </button>
 
-          <div className="w-[1px] h-3.5 bg-slate-700" />
+          <div className="w-[1px] h-4 bg-slate-700" />
 
           {/* Reset / Focus Bangladesh View */}
           <button
             onClick={(e) => {
               e.stopPropagation();
-              handleFocusBangladesh();
+              handleFocusHotspot(GLOBAL_DELTAS[0]);
             }}
-            className="flex items-center gap-1 px-2 sm:px-2.5 py-1 text-[9px] sm:text-[10px] font-mono text-cyan-300 hover:bg-cyan-500/20 rounded-full transition-all min-h-[30px] active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-1 text-[10px] font-mono text-cyan-300 hover:bg-cyan-500/20 rounded-full transition-all min-h-[32px] active:scale-95 font-bold"
             title="Focus Bangladesh / Jamuna Basin"
           >
-            <RotateCcw className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            <RotateCcw className="w-3.5 h-3.5" />
             <span>FOCUS BD</span>
           </button>
 
-          <div className="w-[1px] h-3.5 bg-slate-700" />
+          <div className="w-[1px] h-4 bg-slate-700" />
 
           {/* Zoom Buttons */}
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setZoomLevel((prev) => Math.min(1.85, prev + 0.15));
+              targetZoomDistanceRef.current = Math.max(1.7, targetZoomDistanceRef.current - 0.35);
             }}
-            className="p-1 sm:p-1.5 text-slate-300 hover:text-cyan-400 transition-colors min-w-[28px] min-h-[30px] flex items-center justify-center active:scale-95"
+            className="p-1.5 text-slate-300 hover:text-cyan-400 transition-colors min-w-[30px] min-h-[32px] flex items-center justify-center active:scale-95"
             title="Zoom In"
           >
-            <ZoomIn className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <ZoomIn className="w-4 h-4" />
           </button>
 
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setZoomLevel((prev) => Math.max(0.8, prev - 0.15));
+              targetZoomDistanceRef.current = Math.min(3.6, targetZoomDistanceRef.current + 0.35);
             }}
-            className="p-1 sm:p-1.5 text-slate-300 hover:text-cyan-400 transition-colors min-w-[28px] min-h-[30px] flex items-center justify-center active:scale-95"
+            className="p-1.5 text-slate-300 hover:text-cyan-400 transition-colors min-w-[30px] min-h-[32px] flex items-center justify-center active:scale-95"
             title="Zoom Out"
           >
-            <ZoomOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <ZoomOut className="w-4 h-4" />
           </button>
 
-          <div className="w-[1px] h-3.5 bg-slate-700" />
+          <div className="w-[1px] h-4 bg-slate-700" />
 
           {/* Clouds Toggle */}
           <button
@@ -952,26 +1066,12 @@ export const EarthGlobe: React.FC<EarthGlobeProps> = ({ onSelectBangladesh, onSe
               e.stopPropagation();
               setShowClouds(!showClouds);
             }}
-            className={`px-2 sm:px-2.5 py-1 text-[9px] sm:text-[10px] font-mono rounded-full transition-all min-h-[30px] ${
+            className={`px-2.5 py-1 text-[10px] font-mono rounded-full transition-all min-h-[32px] ${
               showClouds ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold' : 'text-slate-400 hover:text-white'
             }`}
             title="Toggle Atmospheric Clouds"
           >
             CLD
-          </button>
-
-          {/* City Lights Toggle */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowCityLights(!showCityLights);
-            }}
-            className={`px-2 sm:px-2.5 py-1 text-[9px] sm:text-[10px] font-mono rounded-full transition-all min-h-[30px] ${
-              showCityLights ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold' : 'text-slate-400 hover:text-white'
-            }`}
-            title="Toggle Night City Lights"
-          >
-            CITY
           </button>
 
           {/* Radar Beams Toggle */}
@@ -980,7 +1080,7 @@ export const EarthGlobe: React.FC<EarthGlobeProps> = ({ onSelectBangladesh, onSe
               e.stopPropagation();
               setShowRadarBeams(!showRadarBeams);
             }}
-            className={`px-2 sm:px-2.5 py-1 text-[9px] sm:text-[10px] font-mono rounded-full transition-all min-h-[30px] ${
+            className={`px-2.5 py-1 text-[10px] font-mono rounded-full transition-all min-h-[32px] ${
               showRadarBeams ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40 font-bold' : 'text-slate-400 hover:text-white'
             }`}
             title="Toggle SAR Microwave Swaths"
@@ -988,7 +1088,7 @@ export const EarthGlobe: React.FC<EarthGlobeProps> = ({ onSelectBangladesh, onSe
             SAR
           </button>
 
-          <div className="w-[1px] h-3.5 bg-slate-700" />
+          <div className="w-[1px] h-4 bg-slate-700" />
 
           {/* Satellite Mission Inspector */}
           <button
@@ -998,10 +1098,10 @@ export const EarthGlobe: React.FC<EarthGlobeProps> = ({ onSelectBangladesh, onSe
               setSelectedSatInfo(sat);
               if (onSelectSatellite) onSelectSatellite(sat);
             }}
-            className="p-1 sm:p-1.5 text-cyan-400 hover:text-cyan-300 transition-colors min-w-[30px] min-h-[30px] flex items-center justify-center active:scale-95"
+            className="p-1.5 text-cyan-400 hover:text-cyan-300 transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center active:scale-95"
             title="Inspect Satellite Telemetry"
           >
-            <Satellite className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <Satellite className="w-4 h-4" />
           </button>
         </div>
       </div>
