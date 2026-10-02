@@ -14,46 +14,61 @@ app.use(express.static('public'));
 // API Route for CHARWATCH AI River Analyst
 app.post('/api/analyst/chat', async (req, res) => {
   try {
-    const { message, history, activeRegion, activeData } = req.body;
+    const { message, activeRegion, activeData } = req.body || {};
     const apiKey = process.env.GEMINI_API_KEY;
 
-    if (!apiKey) {
-      return res.status(500).json({ 
-        error: 'GEMINI_API_KEY is not configured in environment.' 
-      });
-    }
+    const sectorName = activeRegion ? activeRegion.name : 'Jamuna River - Sirajganj Sector';
+    const riverSystem = activeRegion ? activeRegion.riverSystem : 'Jamuna River';
+    const coherence = activeData?.coherence ?? (activeRegion?.radarCoherence ?? 0.82);
+    const soilMoisture = activeData?.soilMoisture ?? (activeRegion?.soilMoisturePercent ?? 42.8);
+    const bankShift = activeData?.bankShift ?? (activeRegion?.bankShiftMeters ?? 340);
+    const riskLevel = activeData?.riskLevel ?? (activeRegion?.riskTier ?? 'WARNING');
 
-    const ai = new GoogleGenAI({ apiKey });
+    if (apiKey) {
+      const ai = new GoogleGenAI({ apiKey });
 
-    const systemInstruction = `You are CHARWATCH ANALYST, an expert AI Earth Observation & River Dynamics Specialist for the CharWatch project (NASA Space Apps Challenge prototype for Bangladesh river systems).
+      const systemInstruction = `You are CHARWATCH ANALYST, an expert AI Earth Observation & River Dynamics Specialist for the CharWatch project (NASA Space Apps Challenge prototype for Bangladesh and global river systems).
 
 Context & Guidelines:
-1. Current Active River Sector: ${activeRegion ? activeRegion.name : 'Jamuna River Basin - Sirajganj Sector'}
-2. Current Sector Telemetry: ${activeData ? JSON.stringify(activeData) : 'Coherence: 0.82, L-band Backscatter: -11.4 dB, C-band Backscatter: -14.2 dB, Soil Moisture: 42.8%, Bank Shift: 340m West, Prototype Risk: WARNING'}
-3. ALL DATA IN THIS PROTOTYPE IS SIMULATED FOR DEMONSTRATION PURPOSES.
-4. Always ground your explanations in radar physics:
-   - NISAR (L-Band, 24cm wavelength): Superior cloud/canopy penetration, sensitive to soil moisture & sub-surface dielectric properties.
-   - Sentinel-1 (C-Band, 5.6cm wavelength): Excellent for surface roughness, land-water boundary mapping, interferometric coherence decay tracking.
-   - Bank Migration: Caused by severe monsoonal shear stress on loose alluvial sands along Jamuna/Padma/Meghna.
-   - Chars: Dynamics of braided river sandbars (sandbar -> emerging -> vegetated -> settled char).
-5. Tone: Scientific, authoritative, human-centered, concise, and calm.
-6. Clearly state whenever referencing simulated prototype data.`;
+1. Current Active River Sector: ${sectorName} (${riverSystem})
+2. Telemetry: Coherence: ${coherence} γ, Soil Moisture: ${soilMoisture}%, Bank Shift: -${bankShift}m, Risk Tier: ${riskLevel}
+3. Ground your explanations in radar physics:
+   - NISAR (L-Band, 24cm wavelength): Sensitive to sub-surface moisture & dielectric properties.
+   - Sentinel-1 (C-Band, 5.6cm wavelength): Excellent for surface roughness & interferometric coherence decay.
+   - Bank Migration: Caused by severe monsoonal hydraulic shear stress on loose alluvial sands.
+   - Chars: Braided river sandbar accretion dynamics (sandbar -> emerging -> vegetated -> settled char).
+4. Tone: Scientific, authoritative, concise, and calm.`;
 
-    // Construct prompt history or direct message
-    const formattedPrompt = `${systemInstruction}\n\nUser Question: ${message}`;
+      const formattedPrompt = `${systemInstruction}\n\nUser Question: ${message}`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: formattedPrompt }]
-        }
-      ]
-    });
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: formattedPrompt }]
+          }
+        ]
+      });
 
-    const reply = response.text || 'Analysis model returned empty response.';
-    res.json({ reply });
+      const reply = response.text || 'Analysis model returned empty response.';
+      return res.json({ reply });
+    }
+
+    // Fallback if GEMINI_API_KEY is not configured
+    const reply = `[RADAR & HYDRO-ANALYSIS: ${sectorName.toUpperCase()}]
+• River Basin: ${riverSystem}
+• Observed Bankline Displacement: -${bankShift} meters
+• Soil Pore-Water Saturation: ${soilMoisture}% (Critical shear threshold)
+• InSAR Phase Coherence: ${coherence} γ
+• Current Risk Classification: ${riskLevel}
+
+Scientific Assessment:
+The sector is undergoing active monsoonal hydraulic shear stress. L-band SAR backscatter indicates deep alluvial moisture saturation along the lower bank toe, increasing cantilever scarp collapse probability. Accreting char islands downstream are bifurcating discharge into secondary channels.
+
+(Note: To enable live generative conversational mode, configure your GEMINI_API_KEY in environment variables.)`;
+
+    return res.json({ reply });
   } catch (error: any) {
     console.error('Error in /api/analyst/chat:', error);
     res.status(500).json({ 

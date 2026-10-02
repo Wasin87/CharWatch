@@ -710,6 +710,79 @@ export const RadarLab: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* 5. OPTICAL CONTEXT VS. RADAR INTELLIGENCE COMPLEMENTARY COMPARISON */}
+      <div className="p-6 glass-panel rounded-3xl border border-slate-800 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <div className="flex items-center gap-2">
+            <Layers className="w-5 h-5 text-cyan-400" />
+            <h3 className="text-base sm:text-lg font-bold text-white font-display">
+              OPTICAL CONTEXT VS. RADAR INTELLIGENCE
+            </h3>
+          </div>
+          <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-bold">
+            MULTI-SENSOR FUSION
+          </span>
+        </div>
+
+        <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed">
+          Optical imagery can be affected by cloud cover, while radar observations can provide complementary surface information.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          {/* OPTICAL PERSPECTIVE */}
+          <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="px-2.5 py-1 rounded-lg bg-teal-500/20 text-teal-300 font-mono text-[10px] font-bold border border-teal-500/40">
+                OPTICAL VIEW
+              </span>
+              <span className="text-[10px] font-mono text-slate-500">NASA GIBS / Landsat / Sentinel-2</span>
+            </div>
+
+            <h4 className="text-sm font-bold text-white">Passive Solar Surface Reflectance</h4>
+            <p className="text-xs text-slate-300 font-sans leading-relaxed">
+              Captures natural true-color and multispectral NIR/SWIR bands. Excellent for dry-season vegetation indices (NDVI) and sediment plume monitoring. However, passive optical sensors cannot penetrate heavy monsoon storm clouds or thick fog.
+            </p>
+
+            <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-400 space-y-1">
+              <div className="flex justify-between">
+                <span>Wavelength:</span>
+                <span className="text-white">0.4 – 2.2 µm (Visible/Infrared)</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Monsoon Cloud Penetration:</span>
+                <span className="text-rose-400 font-bold">0% (Cloud Blocked)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* RADAR PERSPECTIVE */}
+          <div className="p-4 rounded-2xl bg-slate-950 border border-cyan-500/30 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 font-mono text-[10px] font-bold border border-cyan-500/40">
+                RADAR VIEW
+              </span>
+              <span className="text-[10px] font-mono text-cyan-400 font-bold">NISAR L-Band / Sentinel-1 C-Band</span>
+            </div>
+
+            <h4 className="text-sm font-bold text-white">Active Microwave Coherent Backscatter</h4>
+            <p className="text-xs text-slate-300 font-sans leading-relaxed">
+              Transmits its own electromagnetic microwave pulses (5.6cm to 24cm) that pierce through monsoonal clouds, rain, and darkness 24/7. Measures soil dielectric moisture content, micro-roughness, and InSAR phase deformation.
+            </p>
+
+            <div className="p-2.5 rounded-xl bg-slate-900 border border-cyan-500/20 text-[10px] font-mono text-slate-400 space-y-1">
+              <div className="flex justify-between">
+                <span>Wavelength:</span>
+                <span className="text-cyan-300 font-bold">5.6 cm (C-band) & 24 cm (L-band)</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Monsoon Cloud Penetration:</span>
+                <span className="text-emerald-400 font-bold">100% (All-Weather 24/7)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
   );
 };

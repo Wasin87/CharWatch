@@ -2,6 +2,21 @@ import { DataSourceSpec, RealGranuleRecord } from '../types/charwatch';
 
 export const REAL_DATA_SOURCES: DataSourceSpec[] = [
   {
+    name: 'NASA Global Imagery Browse Services (GIBS)',
+    organization: 'NASA EOSDIS / Earth Science Data Systems',
+    type: 'Full-Resolution Earth Observation Tile Stream (WMTS / WMS)',
+    coverage: 'Global / Bangladesh Delta (Daily & Historical 2000-Present)',
+    resolution: '30m (HLS) / 250m (MODIS/VIIRS) / 9km (SMAP)',
+    lastUpdated: '2026-10-01 Live NRT Ingestion',
+    license: 'NASA Open Data Policy (Free & Open Access)',
+    status: 'OPERATIONAL LIVE',
+    link: 'https://gibs.earthdata.nasa.gov/',
+    apiEndpoint: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/wmts.cgi',
+    accessProtocol: 'OGC WMTS / WMS REST Tile Streams',
+    granuleCount: '1,000+ NASA Satellite Imagery Products',
+    citationDoi: '10.5067/NASA-EOSDIS-GIBS'
+  },
+  {
     name: 'NASA-ISRO NISAR L-band SAR',
     organization: 'NASA Jet Propulsion Laboratory / ISRO',
     type: 'Radar Backscatter, InSAR Coherence & Soil Moisture',

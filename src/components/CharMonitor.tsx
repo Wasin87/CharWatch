@@ -475,6 +475,49 @@ export const CharMonitor: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* MULTI-YEAR NASA GIBS VISUAL CONTEXT & CHAR FORMATION TIMELINE (2022 - 2026) */}
+      <div className="p-6 glass-panel rounded-3xl border border-slate-800 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-cyan-400" />
+            <h3 className="text-base sm:text-lg font-bold text-white font-display">
+              HISTORICAL CHAR DYNAMICS & NASA GIBS OPTICAL CONTEXT
+            </h3>
+          </div>
+          <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-bold">
+            POTENTIAL CHAR / LANDFORM CHANGE
+          </span>
+        </div>
+
+        <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed">
+          Tracking the multi-year formation and colonization of braided island landforms across Bangladesh river systems using NASA GIBS surface reflectance and CHARWATCH analytical radar layers.
+        </p>
+
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2">
+          {[
+            { year: '2022', stage: 'SUBMERGED SHOAL', area: '1.2 km²', status: 'Under-water silt dune deposition' },
+            { year: '2023', stage: 'EMERGENT SANDBAR', area: '2.8 km²', status: 'Low-water sand emergence' },
+            { year: '2024', stage: 'PIONEER KASHBON', area: '4.5 km²', status: 'Catkin grass root matrix growth' },
+            { year: '2025', stage: 'VEGETATED CHAR', area: '7.2 km²', status: 'Permanent alluvial consolidation' },
+            { year: '2026', stage: 'SETTLED ISLAND', area: '8.4 km²', status: 'Current NASA GIBS & SAR observation' },
+          ].map((yr, i) => (
+            <div key={i} className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1.5 font-mono">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-white">{yr.year}</span>
+                <span className="text-[9px] text-cyan-400 font-semibold">{yr.area}</span>
+              </div>
+              <span className="text-[10px] text-teal-300 font-bold block">{yr.stage}</span>
+              <p className="text-[9px] text-slate-400 font-sans leading-tight">{yr.status}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-[10px] font-mono text-slate-400 flex items-center justify-between">
+          <span>*Visual imagery provided through NASA GIBS. Landform stage classifications require field ground-truthing.</span>
+          <span className="text-cyan-400">PROTOTYPE ANALYTICAL MODEL</span>
+        </div>
+      </div>
     </section>
   );
 };

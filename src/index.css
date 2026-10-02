@@ -123,3 +123,54 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #06b6d4;
 }
+
+/* Custom Leaflet Tooltip & Popup Styling for Hotspot Hover */
+.leaflet-tooltip.hotspot-hover-tooltip {
+  background: rgba(3, 7, 18, 0.96) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(6, 182, 212, 0.5) !important;
+  border-radius: 14px !important;
+  color: #f1f5f9 !important;
+  box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.9), 0 0 20px rgba(6, 182, 212, 0.25) !important;
+  padding: 0 !important;
+  font-family: var(--font-sans) !important;
+  white-space: normal !important;
+  pointer-events: none !important;
+}
+
+.leaflet-tooltip-top.hotspot-hover-tooltip:before {
+  border-top-color: rgba(6, 182, 212, 0.5) !important;
+}
+
+.leaflet-tooltip.hotspot-hover-tooltip.critical-tooltip {
+  border-color: rgba(244, 63, 94, 0.65) !important;
+  box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.9), 0 0 22px rgba(244, 63, 94, 0.35) !important;
+}
+.leaflet-tooltip-top.hotspot-hover-tooltip.critical-tooltip:before {
+  border-top-color: rgba(244, 63, 94, 0.65) !important;
+}
+
+.leaflet-tooltip.hotspot-hover-tooltip.warning-tooltip {
+  border-color: rgba(245, 158, 11, 0.65) !important;
+  box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.9), 0 0 22px rgba(245, 158, 11, 0.35) !important;
+}
+.leaflet-tooltip-top.hotspot-hover-tooltip.warning-tooltip:before {
+  border-top-color: rgba(245, 158, 11, 0.65) !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: rgba(3, 7, 18, 0.96) !important;
+  backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(6, 182, 212, 0.4) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.9) !important;
+  padding: 0 !important;
+}
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: normal !important;
+}
+.leaflet-popup-tip {
+  background: rgba(3, 7, 18, 0.96) !important;
+}
