@@ -548,7 +548,7 @@ export const DataProvenance: React.FC = () => {
           <div className="p-6 glass-panel rounded-3xl border border-slate-800 space-y-4">
             <h3 className="text-lg font-bold text-white font-display">END-TO-END MICROWAVE SAR INGESTION ARCHITECTURE</h3>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans">
-              CharWatch processes raw satellite radar data through an automated cloud ingestion chain to derive actionable riverbank shift indices and 72-hour early warnings for Bangladesh.
+              RiverGuard processes raw satellite radar data through an automated cloud ingestion chain to derive actionable riverbank shift indices and 72-hour early warnings for Bangladesh.
             </p>
 
             {/* Pipeline Stage Cards */}
@@ -596,7 +596,7 @@ export const DataProvenance: React.FC = () => {
           <span className="text-sm font-display">NASA OPEN SCIENCE & DATA INTEGRITY CHARTER</span>
         </div>
         <p className="leading-relaxed font-sans text-xs sm:text-sm text-slate-200">
-          CharWatch strictly adheres to the <strong>NASA Open Science Data and Information Policy (SPD-41A)</strong>, the <strong>ESA Copernicus Free, Full and Open Data Policy</strong>, and the <strong>World Meteorological Organization (WMO) Unified Data Policy (Resolution 1)</strong>. All ingested datasets are non-proprietary, open-access, and ground-truth verified against Bangladesh Water Development Board (BWDB) and Flood Forecasting and Warning Centre (FFWC) in-situ hydrological telemetry.
+          RiverGuard strictly adheres to the <strong>NASA Open Science Data and Information Policy (SPD-41A)</strong>, the <strong>ESA Copernicus Free, Full and Open Data Policy</strong>, and the <strong>World Meteorological Organization (WMO) Unified Data Policy (Resolution 1)</strong>. All ingested datasets are non-proprietary, open-access, and ground-truth verified against Bangladesh Water Development Board (BWDB) and Flood Forecasting and Warning Centre (FFWC) in-situ hydrological telemetry.
         </p>
         <div className="flex flex-wrap items-center gap-3 pt-1 text-[11px] font-mono text-cyan-300">
           <span>● FAIR DATA PRINCIPLES (Findable, Accessible, Interoperable, Reusable)</span>

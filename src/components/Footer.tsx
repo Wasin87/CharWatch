@@ -70,7 +70,7 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab, onOpenAnalyst }) =
             <div>
               <div className="flex items-center justify-center sm:justify-start gap-2">
                 <h3 className="font-brand-title text-base sm:text-lg text-white tracking-tight">
-                  CHARWATCH
+                  RiverGuard
                 </h3>
                 <span className="px-2 py-0.5 rounded text-[9px] font-mono tracking-wider uppercase bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-bold">
                   NASA SPACE APPS
@@ -174,7 +174,7 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab, onOpenAnalyst }) =
       <div className="w-full border-t border-slate-900 bg-black/70 px-4 py-3 text-[11px] font-mono text-slate-500 text-center">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>
-            © {new Date().getFullYear()} CHARWATCH · OPEN SCIENCE EARTH OBSERVATION FOR BANGLADESH
+            © {new Date().getFullYear()} RiverGuard · OPEN SCIENCE EARTH OBSERVATION FOR BANGLADESH
           </span>
           <span className="text-slate-400">
             NISAR L-BAND · SENTINEL-1 C-BAND · BWDB TELEMETRY

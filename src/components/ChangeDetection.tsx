@@ -114,7 +114,7 @@ export const ChangeDetection: React.FC = () => {
 
         <div className="p-3 rounded-xl bg-slate-950 border border-rose-500/30 space-y-1">
           <span className="text-[10px] text-rose-400 font-bold uppercase">3. ANALYTICAL OVERLAY</span>
-          <h4 className="text-rose-300 font-bold">CHARWATCH InSAR Model</h4>
+          <h4 className="text-rose-300 font-bold">RiverGuard InSAR Model</h4>
           <p className="text-[11px] text-slate-400 font-sans">
             SAR coherence & sub-surface dielectric saturation.
           </p>
@@ -189,7 +189,7 @@ export const ChangeDetection: React.FC = () => {
                     NASA GIBS: {selectedGibsConfig.title.split('(')[0]} · {activeYear.date}
                   </span>
                   <span className="px-2.5 py-1 rounded-lg bg-slate-950/90 border border-rose-500/40 text-rose-300 font-mono text-[10px] font-bold">
-                    CHARWATCH ANALYTICAL: {activeYear.label}
+                    RIVERGUARD ANALYTICAL: {activeYear.label}
                   </span>
                 </div>
 

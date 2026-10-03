@@ -85,7 +85,7 @@ export default function App() {
 
                 {/* Main Brand Title with Unique Professional High-Tech Typography */}
                 <h1 className="text-3xl xs:text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-brand-hero text-transparent bg-clip-text bg-gradient-to-b from-white via-cyan-100 to-cyan-400 tracking-tight leading-none mb-1.5 sm:mb-2.5 filter drop-shadow-[0_8px_30px_rgba(6,182,212,0.4)] select-none">
-                  CHARWATCH
+                  RiverGuard
                 </h1>
 
                 {/* Main Tagline */}

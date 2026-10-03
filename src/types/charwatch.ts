@@ -1,5 +1,5 @@
 /**
- * CHARWATCH Data Definitions & Types
+ * RiverGuard Data Definitions & Types
  */
 
 export type RiskTier = 'ADVISORY' | 'WARNING' | 'CRITICAL';

@@ -34,7 +34,7 @@ export default async function handler(req: any, res: any) {
     if (apiKey) {
       const ai = new GoogleGenAI({ apiKey });
 
-      const systemInstruction = `You are CHARWATCH ANALYST, an expert AI Earth Observation & River Dynamics Specialist for the CharWatch project (NASA Space Apps Challenge prototype for Bangladesh and global river systems).
+      const systemInstruction = `You are RIVERGUARD ANALYST, an expert AI Earth Observation & River Dynamics Specialist for the RiverGuard project (NASA Space Apps Challenge prototype for Bangladesh and global river systems).
 
 Context & Guidelines:
 1. Current Active River Sector: ${sectorName} (${riverSystem})

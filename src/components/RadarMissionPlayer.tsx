@@ -69,7 +69,7 @@ export const RadarMissionPlayer: React.FC = () => {
       endTime: 14.0,
       label: '05 PANORAMA',
       title: 'JAMUNA BASIN RECONNAISSANCE',
-      subtitle: 'CharWatch Satellite Radar Observatory · Bangladesh',
+      subtitle: 'RiverGuard Satellite Radar Observatory · Bangladesh',
       frame: '/videos/frames/scene5.jpg',
       tag: 'BENGAL DELTA SENTINEL-1',
       coords: '24°40\'N 89°38\'E',
@@ -228,7 +228,7 @@ export const RadarMissionPlayer: React.FC = () => {
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500" />
           </span>
           <span className="text-[10px] sm:text-xs font-mono font-bold tracking-wider text-cyan-300 uppercase">
-            CHARWATCH MISSION RECONNAISSANCE
+            RIVERGUARD MISSION RECONNAISSANCE
           </span>
           <span className="hidden md:inline px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.2)]">
             {activeScene.tag}

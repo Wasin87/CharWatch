@@ -34,7 +34,7 @@ export const CinematicStory: React.FC = () => {
       
       <div className="text-center max-w-2xl mx-auto mb-16">
         <span className="text-xs font-mono tracking-widest text-cyan-400 uppercase font-semibold">
-          THE CHARWATCH MISSION STORY
+          THE RIVERGUARD MISSION STORY
         </span>
         <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-1 font-display">
           FROM SPACE TO COMMUNITY

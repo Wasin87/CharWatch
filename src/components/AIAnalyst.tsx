@@ -20,7 +20,7 @@ export const AIAnalyst: React.FC<AIAnalystProps> = ({ isOpen, onClose, activeReg
     {
       id: 'welcome',
       sender: 'analyst',
-      text: `Hello! I am CHARWATCH ANALYST, your AI Earth Observation & River Dynamics Specialist. How can I assist your analysis of the ${activeRegion ? activeRegion.name : 'Jamuna River Basin'} today?`,
+      text: `Hello! I am RIVERGUARD ANALYST, your AI Earth Observation & River Dynamics Specialist. How can I assist your analysis of the ${activeRegion ? activeRegion.name : 'Jamuna River Basin'} today?`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -106,7 +106,7 @@ export const AIAnalyst: React.FC<AIAnalystProps> = ({ isOpen, onClose, activeReg
             <Cpu className="w-4 h-4 animate-pulse" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white font-display">CHARWATCH ANALYST</h3>
+            <h3 className="text-sm font-bold text-white font-display">RIVERGUARD ANALYST</h3>
             <span className="text-[10px] font-mono text-cyan-400">GEMINI AI · EARTH OBSERVATION</span>
           </div>
         </div>
@@ -130,7 +130,7 @@ export const AIAnalyst: React.FC<AIAnalystProps> = ({ isOpen, onClose, activeReg
               {msg.sender === 'analyst' ? (
                 <>
                   <Bot className="w-3 h-3 text-cyan-400" />
-                  <span className="text-cyan-400 font-bold">CHARWATCH ANALYST</span>
+                  <span className="text-cyan-400 font-bold">RIVERGUARD ANALYST</span>
                 </>
               ) : (
                 <>

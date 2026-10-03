@@ -214,7 +214,7 @@ export const SIMULATED_SATELLITES: SatelliteMission[] = [
     primaryPurpose: 'Direct river surface elevation, slope gradients, and discharge volume estimates across major Bangladesh rivers.',
     activeStatus: 'OPERATIONAL',
     polarizations: ['Ka-band Radar Interferometer'],
-    description: 'SWOT provides revolutionary 3D surface water elevation profiles, allowing CharWatch to measure hydraulic slope changes along Jamuna bank shear zones.',
+    description: 'SWOT provides revolutionary 3D surface water elevation profiles, allowing RiverGuard to measure hydraulic slope changes along Jamuna bank shear zones.',
     iconName: 'Waves'
   },
   {

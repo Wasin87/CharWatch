@@ -46,7 +46,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab,
           {/* Aesthetic Brand Name with Futuristic Gradient & Crisp Geometric Typography */}
           <div className="flex flex-col">
             <span className="font-brand-title text-lg sm:text-xl tracking-tight uppercase text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-teal-200 to-white group-hover:from-cyan-100 group-hover:to-cyan-300 transition-all filter drop-shadow-[0_0_12px_rgba(6,182,212,0.45)]">
-              CHARWATCH
+              RiverGuard
             </span>
             <span className="text-[8px] sm:text-[9px] font-brand-kicker tracking-wider text-slate-400 uppercase -mt-0.5 hidden xs:inline-block flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping inline-block" />

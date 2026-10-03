@@ -17,7 +17,7 @@ export const AboutMission: React.FC = () => {
         </div>
         
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-brand-title text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-200 to-teal-300 tracking-tight drop-shadow-[0_0_25px_rgba(6,182,212,0.4)]">
-          CHARWATCH
+          RiverGuard
         </h1>
 
         <p className="text-cyan-300 font-mono text-xs sm:text-sm tracking-widest mt-2 uppercase font-semibold">
@@ -25,7 +25,7 @@ export const AboutMission: React.FC = () => {
         </p>
 
         <p className="text-slate-300 text-xs sm:text-sm md:text-base mt-4 sm:mt-6 leading-relaxed font-sans">
-          CharWatch is a Bangladesh-focused Earth observation system designed to monitor riverbank change, erosion-related indicators, and newly formed chars using Synthetic Aperture Radar (SAR) and hydrological telemetry.
+          RiverGuard is a Bangladesh-focused Earth observation system designed to monitor riverbank change, erosion-related indicators, and newly formed chars using Synthetic Aperture Radar (SAR) and hydrological telemetry.
         </p>
       </div>
 
@@ -63,7 +63,7 @@ export const AboutMission: React.FC = () => {
           Bangladesh’s major river systems — the Jamuna, Padma, Meghna, and Brahmaputra — are among the most dynamic braided rivers in the world. Every monsoon season, severe hydraulic current shear carves away thousands of hectares of riverbank land, displacing over 100,000 people annually and submerging entire char settlements.
         </p>
         <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-          CharWatch introduces all-weather satellite radar intelligence, allowing disaster response teams and local communities to "see through the clouds" and prepare before erosion strikes.
+          RiverGuard introduces all-weather satellite radar intelligence, allowing disaster response teams and local communities to "see through the clouds" and prepare before erosion strikes.
         </p>
       </div>
 

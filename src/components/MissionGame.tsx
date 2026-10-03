@@ -244,7 +244,7 @@ export const MissionGame: React.FC<MissionGameProps> = ({ onOpenObservatory }) =
           </h2>
           
           <p className="text-slate-300 text-xs sm:text-sm mt-3 leading-relaxed max-w-2xl mx-auto">
-            A severe 142,000 m³/s monsoonal flood pulse is destabilizing the loose alluvial riverbanks of the Jamuna basin. As CharWatch Tactical Commander, operate the real-time satellite radar scanner, identify the critical erosion zone on high-resolution satellite imagery, and deploy defensive countermeasures before bank breach.
+            A severe 142,000 m³/s monsoonal flood pulse is destabilizing the loose alluvial riverbanks of the Jamuna basin. As RiverGuard Tactical Commander, operate the real-time satellite radar scanner, identify the critical erosion zone on high-resolution satellite imagery, and deploy defensive countermeasures before bank breach.
           </p>
 
           {/* Sector Selection Cards */}

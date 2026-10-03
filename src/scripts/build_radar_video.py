@@ -22,7 +22,7 @@ cmd = [
     "-i", "-",
     "-vf", (
         "drawtext=fontfile=/usr/share/fonts/truetype/freefont/FreeSansBold.ttf:"
-        "text='CHARWATCH ORBITAL RADAR OBSERVATION | DUAL-FREQUENCY L+C BAND SAR':"
+        "text='RIVERGUARD ORBITAL RADAR OBSERVATION | DUAL-FREQUENCY L+C BAND SAR':"
         "x=48:y=40:fontsize=20:fontcolor=0x22d3ee:box=1:boxcolor=0x00000099:boxborderw=8,"
         
         "drawtext=fontfile=/usr/share/fonts/truetype/freefont/FreeSansBold.ttf:"

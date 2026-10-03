@@ -212,7 +212,7 @@ export const CosmicPreloader: React.FC<CosmicPreloaderProps> = ({ onComplete }) 
         
         {/* Aesthetic Website Title with Cosmic Holographic Gradient */}
         <h1 className="text-3xl sm:text-4xl font-extrabold font-display tracking-[0.2em] uppercase text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-amber-200 filter drop-shadow-[0_0_20px_rgba(6,182,212,0.45)]">
-          CHARWATCH
+          RiverGuard
         </h1>
 
         {/* Kicker Subtitle */}

@@ -11,7 +11,7 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 app.use(express.json());
 app.use(express.static('public'));
 
-// API Route for CHARWATCH AI River Analyst
+// API Route for RIVERGUARD AI River Analyst
 app.post('/api/analyst/chat', async (req, res) => {
   try {
     const { message, activeRegion, activeData } = req.body || {};
@@ -27,7 +27,7 @@ app.post('/api/analyst/chat', async (req, res) => {
     if (apiKey) {
       const ai = new GoogleGenAI({ apiKey });
 
-      const systemInstruction = `You are CHARWATCH ANALYST, an expert AI Earth Observation & River Dynamics Specialist for the CharWatch project (NASA Space Apps Challenge prototype for Bangladesh and global river systems).
+      const systemInstruction = `You are RIVERGUARD ANALYST, an expert AI Earth Observation & River Dynamics Specialist for the RiverGuard project (NASA Space Apps Challenge prototype for Bangladesh and global river systems).
 
 Context & Guidelines:
 1. Current Active River Sector: ${sectorName} (${riverSystem})
@@ -93,7 +93,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[CHARWATCH] Server running on http://0.0.0.0:${PORT}`);
+    console.log(`[RIVERGUARD] Server running on http://0.0.0.0:${PORT}`);
   });
 }
 

@@ -55,7 +55,7 @@ const GLOBAL_DELTAS: RiverDeltaHotspot[] = [
     keyFeature: 'World’s most dynamic braided river corridor; severe monsoonal bank scour and char accretion.',
     color: '#06b6d4',
     accentHex: 0x06b6d4,
-    description: 'Primary focal corridor of CHARWATCH. Receives Himalayan meltwater discharge, causing extreme seasonal sandbar turnover.',
+    description: 'Primary focal corridor of RiverGuard. Receives Himalayan meltwater discharge, causing extreme seasonal sandbar turnover.',
   },
   {
     id: 'amazon',

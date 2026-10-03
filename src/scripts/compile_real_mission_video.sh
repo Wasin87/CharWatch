@@ -26,7 +26,7 @@ ffmpeg -y -loop 1 -i "${FRAMES_DIR}/scene4.jpg" \
 
 echo "5. Encoding Scene 5 (Jamuna River Basin Panorama)..."
 ffmpeg -y -loop 1 -i "${FRAMES_DIR}/scene5.jpg" \
-  -filter_complex "scale=5504:3072,zoompan=z='max(1.18-0.0016*on,1.02)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=96:s=1280x720:fps=30,drawtext=fontfile=${FONT}:text='CharWatch Satellite Radar Observatory · Bangladesh':x=(w-tw)/2:y=h-80:fontsize=30:fontcolor=white:box=1:boxcolor=black@0.75:boxborderw=12" \
+  -filter_complex "scale=5504:3072,zoompan=z='max(1.18-0.0016*on,1.02)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=96:s=1280x720:fps=30,drawtext=fontfile=${FONT}:text='RiverGuard Satellite Radar Observatory · Bangladesh':x=(w-tw)/2:y=h-80:fontsize=30:fontcolor=white:box=1:boxcolor=black@0.75:boxborderw=12" \
   -t 3.2 -c:v libx264 -pix_fmt yuv420p -r 30 -g 30 -preset ultrafast /tmp/c5.mp4
 
 echo "6. Seamless Crossfade Compositing into public/videos/radar_mission.mp4..."

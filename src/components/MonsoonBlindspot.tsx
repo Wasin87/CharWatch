@@ -479,7 +479,7 @@ export const MonsoonBlindspot: React.FC = () => {
             <span className="font-bold text-[10px] tracking-wider uppercase">COMMUNITY RISK EARLY WARNING</span>
           </div>
           <p className="text-slate-300 leading-relaxed font-sans text-xs">
-            CharWatch computes automated radar interferometry (InSAR) and backscatter differentials across consecutive satellite passes, providing up to <span className="font-mono text-emerald-300 font-bold">72 hours advance warning</span> to vulnerable chars.
+            RiverGuard computes automated radar interferometry (InSAR) and backscatter differentials across consecutive satellite passes, providing up to <span className="font-mono text-emerald-300 font-bold">72 hours advance warning</span> to vulnerable chars.
           </p>
         </div>
       </div>

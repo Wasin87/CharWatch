@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface CharwatchLogoProps {
+export interface CharwatchLogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   animated?: boolean;
   className?: string;
@@ -163,3 +163,5 @@ export const CharwatchLogo: React.FC<CharwatchLogoProps> = ({
     </div>
   );
 };
+
+export const RiverGuardLogo = CharwatchLogo;

@@ -491,7 +491,7 @@ export const CharMonitor: React.FC = () => {
         </div>
 
         <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed">
-          Tracking the multi-year formation and colonization of braided island landforms across Bangladesh river systems using NASA GIBS surface reflectance and CHARWATCH analytical radar layers.
+          Tracking the multi-year formation and colonization of braided island landforms across Bangladesh river systems using NASA GIBS surface reflectance and RiverGuard analytical radar layers.
         </p>
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2">
